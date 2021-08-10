@@ -30,7 +30,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 @Mixin(EntityAttributeInstance.class)
-public abstract class EntityAttributeInstanceMixin implements IAttributeInstance {
+abstract class EntityAttributeInstanceMixin implements IAttributeInstance {
 	
 	@Final
 	@Shadow

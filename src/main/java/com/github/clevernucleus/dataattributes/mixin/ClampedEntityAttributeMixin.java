@@ -12,7 +12,7 @@ import net.minecraft.entity.attribute.ClampedEntityAttribute;
 import net.minecraft.util.math.MathHelper;
 
 @Mixin(ClampedEntityAttribute.class)
-public abstract class ClampedEntityAttributeMixin extends EntityAttributeMixin {
+abstract class ClampedEntityAttributeMixin extends EntityAttributeMixin {
 	
 	@Final
 	@Shadow

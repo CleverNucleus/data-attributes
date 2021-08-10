@@ -17,7 +17,7 @@ import net.minecraft.entity.attribute.DefaultAttributeRegistry;
 import net.minecraft.world.World;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin {
+abstract class LivingEntityMixin {
 	
 	@Unique
 	private AttributeContainer data$attributes;

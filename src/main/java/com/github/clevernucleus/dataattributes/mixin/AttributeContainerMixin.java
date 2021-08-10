@@ -15,7 +15,7 @@ import net.minecraft.entity.attribute.AttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 
 @Mixin(AttributeContainer.class)
-public abstract class AttributeContainerMixin implements IMutableContainer {
+abstract class AttributeContainerMixin implements IMutableContainer {
 	
 	@Unique
 	private boolean data$isClient;

@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import net.minecraft.entity.attribute.EntityAttribute;
 
 @Mixin(EntityAttribute.class)
-public abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
+abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
 	
 	@Final
 	@Shadow

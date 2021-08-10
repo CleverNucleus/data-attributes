@@ -13,7 +13,7 @@ import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 
 @Mixin(DefaultAttributeContainer.class)
-public abstract class DefaultAttributeContainerMixin implements IMutableContainer {
+abstract class DefaultAttributeContainerMixin implements IMutableContainer {
 	
 	@Final
 	@Shadow
