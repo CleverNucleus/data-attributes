@@ -91,7 +91,22 @@ public final class LoaderJsonManager implements SimpleSynchronousResourceReloadL
 		return false;
 	}
 	
+	public void clear() {
+		this.overrides.clear();
+		this.attributes.clear();
+		this.entityTypes.clear();
+		this.containers.clear();
+	}
+	
 	public void refresh() {
+		for(Identifier identifier : Registry.ATTRIBUTE.getIds()) {
+			EntityAttribute attribute = Registry.ATTRIBUTE.get(identifier);
+			
+			if(attribute == null) continue;
+			
+			((IMutableAttribute)attribute).reset();
+		}
+		
 		for(Identifier identifier : this.overrides.keySet()) {
 			AttributeJson json = this.overrides.get(identifier);
 			EntityAttribute attribute = getOrCreate(identifier, json.newAttribute());
@@ -154,7 +169,6 @@ public final class LoaderJsonManager implements SimpleSynchronousResourceReloadL
 			}
 		}
 		
-		this.overrides.clear();
 		this.overrides.putAll(local);
 	}
 	
@@ -192,8 +206,6 @@ public final class LoaderJsonManager implements SimpleSynchronousResourceReloadL
 		for(FunctionsJson functionsJson : local.values()) {
 			functionsJson.merge(functions);
 		}
-		
-		this.attributes.clear();
 		
 		for(Identifier identifier : functions.keySet()) {
 			AttributeObject attributeObject = new AttributeObject();
@@ -292,8 +304,6 @@ public final class LoaderJsonManager implements SimpleSynchronousResourceReloadL
 			entityTypesJson.merge(entityTypes);
 		}
 		
-		this.entityTypes.clear();
-		
 		for(Identifier identifier : entityTypes.keySet()) {
 			EntityTypeObject entityTypeObject = new EntityTypeObject(entityTypes.get(identifier));
 			this.entityTypes.put(identifier, entityTypeObject);
@@ -302,6 +312,7 @@ public final class LoaderJsonManager implements SimpleSynchronousResourceReloadL
 	
 	@Override
 	public void reload(ResourceManager manager) {
+		this.clear();
 		this.loadOverrides(manager);
 		this.loadFunctions(manager);
 		this.loadProperties(manager);

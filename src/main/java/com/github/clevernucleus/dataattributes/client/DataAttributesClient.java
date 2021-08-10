@@ -26,9 +26,10 @@ public final class DataAttributesClient implements ClientModInitializer {
 		NbtCompound tag = buf.readNbt();
 		
 		client.execute(() -> {
+			DataAttributes.MANAGER.clear();
+			
 			if(tag.contains("Overrides")) {
 				NbtList overrides = tag.getList("Overrides", NbtType.COMPOUND);
-				DataAttributes.MANAGER.overrides.clear();
 				
 				for(int i = 0; i < overrides.size(); i++) {
 					NbtCompound entry = overrides.getCompound(i);
@@ -40,7 +41,6 @@ public final class DataAttributesClient implements ClientModInitializer {
 			
 			if(tag.contains("Attributes")) {
 				NbtList attributes = tag.getList("Attributes", NbtType.COMPOUND);
-				DataAttributes.MANAGER.attributes.clear();
 				
 				for(int i = 0; i < attributes.size(); i++) {
 					NbtCompound entry = attributes.getCompound(i);
@@ -52,7 +52,6 @@ public final class DataAttributesClient implements ClientModInitializer {
 			
 			if(tag.contains("EntityTypes")) {
 				NbtList entityTypes = tag.getList("EntityTypes", NbtType.COMPOUND);
-				DataAttributes.MANAGER.entityTypes.clear();
 				
 				for(int i = 0; i < entityTypes.size(); i++) {
 					NbtCompound entry = entityTypes.getCompound(i);

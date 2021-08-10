@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,6 +24,14 @@ import net.minecraft.entity.attribute.EntityAttribute;
 
 @Mixin(EntityAttribute.class)
 public abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
+	
+	@Final
+	@Shadow
+	private double fallback;
+	
+	@Final
+	@Shadow
+	private String translationKey;
 	
 	@Unique
 	private double data$defaultValue, data$minValue, data$maxValue;
@@ -120,5 +130,15 @@ public abstract class EntityAttributeMixin implements IAttribute, IMutableAttrib
 	public void setProperties(final Map<String, Float> properties) {
 		if(properties == null) return;
 		this.data$properties = properties;
+	}
+	
+	@Override
+	public void reset() {
+		this.setDefaultValue(this.fallback);
+		this.setMinValue(this.fallback);
+		this.setMaxValue(this.fallback);
+		this.setTranslationKey(this.translationKey);
+		this.setFunctions(new HashSet<AttributeFunctionJson>());
+		this.setProperties(new HashMap<String, Float>());
 	}
 }

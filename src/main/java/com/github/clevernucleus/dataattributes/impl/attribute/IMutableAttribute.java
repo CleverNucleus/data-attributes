@@ -18,4 +18,6 @@ public interface IMutableAttribute {
 	void setFunctions(final Collection<AttributeFunctionJson> functions);
 	
 	void setProperties(final Map<String, Float> properties);
+	
+	void reset();
 }
