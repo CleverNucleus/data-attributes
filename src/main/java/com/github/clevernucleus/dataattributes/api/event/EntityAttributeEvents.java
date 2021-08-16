@@ -1,8 +1,8 @@
 package com.github.clevernucleus.dataattributes.api.event;
 
-import java.util.UUID;
-
 import org.jetbrains.annotations.Nullable;
+
+import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttributeModifier;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -24,17 +24,14 @@ public final class EntityAttributeEvents {
 	 * <p>Exposes:</p>
 	 * <li> (final) LivingEntity instance (can be null, checks required) of the living entity that the AttributeContainer belongs to.</li>
 	 * <li> (final) EntityAttribute instance of the attribute that the modifier is being applied to.</li>
-	 * <li> (final) UUID the uuid of the modifier about to be applied.</li>
-	 * <li> (final) String the name of the modifier about to be applied.</li>
-	 * <li> (mutable) double the value of the modifier about to be applied (this can be changed in this event).</li>
-	 * <li> (final) EntityAttributeModifier.Operation the operation of the modifier about to be applied.</li>
+	 * <li> (final) IEntityAttributeModifier instance; allows the modifier's value to be changed (mutable). </li>
 	 * 
 	 * <p>Fires on both the client and server, but the number of times fired for a given modifier is unreliable - 
 	 * Dev's should utilise idempotency design principles in their code.</p>
 	 */
-	public static final Event<EntityAttributeEvents.AddedPre> MODIFIER_ADDED_PRE = EventFactory.createArrayBacked(EntityAttributeEvents.AddedPre.class, listeners -> (entity, attribute, uuid, name, value, operation) -> {
+	public static final Event<EntityAttributeEvents.AddedPre> MODIFIER_ADDED_PRE = EventFactory.createArrayBacked(EntityAttributeEvents.AddedPre.class, listeners -> (entity, attribute, modifier) -> {
 		for(AddedPre listener : listeners) {
-			listener.onAdded(entity, attribute, uuid, name, value, operation);
+			listener.onAdded(entity, attribute, modifier);
 		}
 	});
 	
@@ -92,7 +89,7 @@ public final class EntityAttributeEvents {
 	@FunctionalInterface
 	public interface AddedPre {
 		
-		void onAdded(@Nullable final LivingEntity entity, final EntityAttribute attribute, final UUID uuid, final String name, double value, final EntityAttributeModifier.Operation operation);
+		void onAdded(@Nullable final LivingEntity entity, final EntityAttribute attribute, final IEntityAttributeModifier modifier);
 	}
 	
 	@FunctionalInterface

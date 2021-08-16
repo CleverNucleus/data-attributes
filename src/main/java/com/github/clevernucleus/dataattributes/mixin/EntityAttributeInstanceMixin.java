@@ -20,6 +20,7 @@ import com.github.clevernucleus.dataattributes.api.attribute.IAttributeFunction;
 import com.github.clevernucleus.dataattributes.api.event.EntityAttributeEvents;
 import com.github.clevernucleus.dataattributes.impl.attribute.IAttributeInstance;
 import com.github.clevernucleus.dataattributes.impl.attribute.IMutableContainer;
+import com.github.clevernucleus.dataattributes.impl.attribute.MutableEntityAttributeModifier;
 import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.entity.attribute.AttributeContainer;
@@ -205,11 +206,11 @@ abstract class EntityAttributeInstanceMixin implements IAttributeInstance {
 	
 	@Override
 	public void addTemporaryModifierToInstance(EntityAttributeModifier modifierIn) {
-		double value = modifierIn.getValue();
+		MutableEntityAttributeModifier mutableModifier = new MutableEntityAttributeModifier(modifierIn);
 		
-		EntityAttributeEvents.MODIFIER_ADDED_PRE.invoker().onAdded(((IMutableContainer)this.data$container).livingEntity(), this.type, modifierIn.getId(), modifierIn.getName(), value, modifierIn.getOperation());
+		EntityAttributeEvents.MODIFIER_ADDED_PRE.invoker().onAdded(((IMutableContainer)this.data$container).livingEntity(), this.type, mutableModifier);
 		
-		EntityAttributeModifier modifier = new EntityAttributeModifier(modifierIn.getId(), modifierIn.getName(), value, modifierIn.getOperation());
+		EntityAttributeModifier modifier = mutableModifier.getModifier();
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
 		((EntityAttributeInstanceInvoker)instance).invokeAddModifier(modifier);
 		this.applyModifier(modifier, (subInstance, subModifier) -> ((IAttributeInstance)subInstance).addTemporaryModifierToInstance(subModifier));
@@ -219,11 +220,11 @@ abstract class EntityAttributeInstanceMixin implements IAttributeInstance {
 	
 	@Override
 	public void addPersistentModifierToInstance(EntityAttributeModifier modifierIn) {
-		double value = modifierIn.getValue();
+		MutableEntityAttributeModifier mutableModifier = new MutableEntityAttributeModifier(modifierIn);
 		
-		EntityAttributeEvents.MODIFIER_ADDED_PRE.invoker().onAdded(((IMutableContainer)this.data$container).livingEntity(), this.type, modifierIn.getId(), modifierIn.getName(), value, modifierIn.getOperation());
+		EntityAttributeEvents.MODIFIER_ADDED_PRE.invoker().onAdded(((IMutableContainer)this.data$container).livingEntity(), this.type, mutableModifier);
 		
-		EntityAttributeModifier modifier = new EntityAttributeModifier(modifierIn.getId(), modifierIn.getName(), value, modifierIn.getOperation());
+		EntityAttributeModifier modifier = mutableModifier.getModifier();
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
 		((EntityAttributeInstanceInvoker)instance).invokeAddModifier(modifier);
 		this.persistentModifiers.add(modifier);
