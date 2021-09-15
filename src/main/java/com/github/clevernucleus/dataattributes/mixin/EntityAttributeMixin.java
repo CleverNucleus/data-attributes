@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.github.clevernucleus.dataattributes.api.attribute.IAttribute;
 import com.github.clevernucleus.dataattributes.api.attribute.IAttributeFunction;
+import com.github.clevernucleus.dataattributes.api.event.MathClampEvent;
 import com.github.clevernucleus.dataattributes.impl.attribute.IMutableAttribute;
 import com.github.clevernucleus.dataattributes.impl.json.AttributeFunctionJson;
 import com.google.common.collect.ImmutableSet;
@@ -68,6 +70,16 @@ abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
 	@Inject(method = "getTranslationKey", at = @At("HEAD"), cancellable = true)
 	private void translationKey(CallbackInfoReturnable<String> info) {
 		info.setReturnValue(this.data$translationKey);
+	}
+	
+	@Inject(method = "clamp", at = @At("HEAD"), cancellable = true)
+	private void clamped(double value, CallbackInfoReturnable<Double> info) {
+		EntityAttribute attribute = (EntityAttribute)(Object)this;
+		final MutableDouble mutable = new MutableDouble(value);
+		
+		MathClampEvent.EVENT.invoker().onClamped(attribute, mutable);
+		
+		info.setReturnValue(mutable.getValue());
 	}
 	
 	@Override
