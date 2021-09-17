@@ -33,7 +33,11 @@ public final class MathClampEvent {
 	@FunctionalInterface
 	public interface Clamp {
 		
-		
+		/**
+		 * 
+		 * @param attribute
+		 * @param value
+		 */
 		void onClamped(final EntityAttribute attribute, final MutableDouble value);
 	}
 }

@@ -52,7 +52,7 @@ public interface IAttribute {
 	 * @param property A property key.
 	 * @return This attribute's property value assigned to the input property's key. If it does not exist or is null, returns 0.0F.
 	 */
-	float getProperty(final String property);
+	String getProperty(final String property);
 	
 	/**
 	 * @return An immutable collection of the attribute functions attached to this attribute.

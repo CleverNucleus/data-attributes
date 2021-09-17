@@ -45,7 +45,7 @@ abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
 	private Collection<AttributeFunctionJson> data$functions;
 	
 	@Unique
-	private Map<String, Float> data$properties;
+	private Map<String, String> data$properties;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void init(String translationKey, double fallback, CallbackInfo info) {
@@ -54,7 +54,7 @@ abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
 		this.data$minValue = fallback;
 		this.data$maxValue = fallback;
 		this.data$functions = new HashSet<AttributeFunctionJson>();
-		this.data$properties = new HashMap<String, Float>();
+		this.data$properties = new HashMap<String, String>();
 	}
 	
 	@Inject(method = "isTracked", at = @At("HEAD"), cancellable = true)
@@ -108,8 +108,8 @@ abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
 	}
 	
 	@Override
-	public float getProperty(final String property) {
-		return this.data$properties.getOrDefault(property, 0.0F);
+	public String getProperty(final String property) {
+		return this.data$properties.getOrDefault(property, "");
 	}
 	
 	@Override
@@ -139,7 +139,7 @@ abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
 	}
 	
 	@Override
-	public void setProperties(final Map<String, Float> properties) {
+	public void setProperties(final Map<String, String> properties) {
 		if(properties == null) return;
 		this.data$properties = properties;
 	}
@@ -151,6 +151,6 @@ abstract class EntityAttributeMixin implements IAttribute, IMutableAttribute {
 		this.setMaxValue(this.fallback);
 		this.setTranslationKey(this.translationKey);
 		this.setFunctions(new HashSet<AttributeFunctionJson>());
-		this.setProperties(new HashMap<String, Float>());
+		this.setProperties(new HashMap<String, String>());
 	}
 }

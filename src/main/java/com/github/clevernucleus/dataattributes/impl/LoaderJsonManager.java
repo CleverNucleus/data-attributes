@@ -256,7 +256,7 @@ public final class LoaderJsonManager implements SimpleSynchronousResourceReloadL
 			}
 		}
 		
-		Map<Identifier, Map<String, Float>> properties = new HashMap<Identifier, Map<String, Float>>();
+		Map<Identifier, Map<String, String>> properties = new HashMap<Identifier, Map<String, String>>();
 		
 		for(PropertiesJson propertiesJson : local.values()) {
 			propertiesJson.merge(properties);

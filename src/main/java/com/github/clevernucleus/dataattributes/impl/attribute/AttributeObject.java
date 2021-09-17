@@ -13,18 +13,18 @@ import net.minecraft.nbt.NbtList;
 
 public final class AttributeObject {
 	private final Collection<AttributeFunctionJson> functions;
-	private final Map<String, Float> properties;
+	private final Map<String, String> properties;
 	
 	public AttributeObject() {
 		this.functions = new HashSet<AttributeFunctionJson>();
-		this.properties = new HashMap<String, Float>();
+		this.properties = new HashMap<String, String>();
 	}
 	
 	public void appendFunctions(Collection<AttributeFunctionJson> functionsIn) {
 		this.functions.addAll(functionsIn);
 	}
 	
-	public void appendProperties(Map<String, Float> propertiesIn) {
+	public void appendProperties(Map<String, String> propertiesIn) {
 		this.properties.putAll(propertiesIn);
 	}
 	
@@ -50,7 +50,7 @@ public final class AttributeObject {
 		for(String key : this.properties.keySet()) {
 			NbtCompound entry = new NbtCompound();
 			entry.putString("Key", key);
-			entry.putFloat("Value", this.properties.get(key));
+			entry.putString("Value", this.properties.get(key));
 			properties.add(entry);
 		}
 		
@@ -77,7 +77,7 @@ public final class AttributeObject {
 		
 		for(int i = 0; i < properties.size(); i++) {
 			NbtCompound entry = properties.getCompound(i);
-			attributeObject.properties.put(entry.getString("Key"), entry.getFloat("Value"));
+			attributeObject.properties.put(entry.getString("Key"), entry.getString("Value"));
 		}
 		
 		return attributeObject;

@@ -4,6 +4,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import com.github.clevernucleus.dataattributes.DataAttributes;
+import com.github.clevernucleus.dataattributes.api.event.client.ClientSyncedEvent;
 import com.github.clevernucleus.dataattributes.impl.attribute.AttributeObject;
 import com.github.clevernucleus.dataattributes.impl.attribute.EntityTypeObject;
 import com.github.clevernucleus.dataattributes.impl.json.AttributeJson;
@@ -62,6 +63,7 @@ public final class DataAttributesClient implements ClientModInitializer {
 			}
 			
 			DataAttributes.MANAGER.refresh();
+			ClientSyncedEvent.EVENT.invoker().onCompletion(client);
 		});
 		
 		PacketByteBuf bufOut = PacketByteBufs.create();

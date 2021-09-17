@@ -8,14 +8,14 @@ import com.google.gson.annotations.Expose;
 import net.minecraft.util.Identifier;
 
 public final class PropertiesJson {
-	@Expose private HashMap<String, HashMap<String, Float>> values;
+	@Expose private HashMap<String, HashMap<String, String>> values;
 	
 	private PropertiesJson() {}
 	
-	public void merge(Map<Identifier, Map<String, Float>> propertiesIn) {
+	public void merge(Map<Identifier, Map<String, String>> propertiesIn) {
 		for(String key : this.values.keySet()) {
 			Identifier identifier = new Identifier(key);
-			Map<String, Float> properties = propertiesIn.getOrDefault(identifier, new HashMap<String, Float>());
+			Map<String, String> properties = propertiesIn.getOrDefault(identifier, new HashMap<String, String>());
 			this.values.get(key).forEach(properties::put);
 			propertiesIn.put(identifier, properties);
 		}
