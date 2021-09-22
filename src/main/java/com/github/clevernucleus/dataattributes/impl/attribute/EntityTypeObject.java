@@ -31,8 +31,9 @@ public final class EntityTypeObject {
 			if(attribute == null) continue;
 			
 			double value = this.attributes.get(identifier);
+			double clamp = attribute.clamp(value);
 			
-			builderIn.add(attribute, value);
+			builderIn.add(attribute, clamp);
 		}
 	}
 	
