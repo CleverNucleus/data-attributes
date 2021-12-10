@@ -4,13 +4,7 @@
     "package": "com.github.clevernucleus.dataattributes.mixin",
     "compatibilityLevel": "JAVA_16",
     "mixins": [
-        "EntityAttributeInstanceInvoker",
-        "EntityAttributeMixin",
-        "ClampedEntityAttributeMixin",
-        "EntityAttributeInstanceMixin",
-        "DefaultAttributeContainerMixin",
-        "AttributeContainerMixin",
-        "LivingEntityMixin"
+        
     ],
     "client": [
         
