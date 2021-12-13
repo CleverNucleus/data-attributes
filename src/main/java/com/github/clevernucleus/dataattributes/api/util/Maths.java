@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
  * Yes with an s because it's Mathematics not Mathematic.
  */
 public final class Maths {
-	public static Map<String, Maths> VALUES = enumLookupMap(new Maths[4], Maths::toString);
+	
 	/**
 	 * Adds or subtracts the current and adding values, with diminishing returns tending towards the limit.
 	 * @param current Current value (add to or subtract from).

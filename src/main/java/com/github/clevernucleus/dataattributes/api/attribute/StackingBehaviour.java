@@ -3,6 +3,14 @@ package com.github.clevernucleus.dataattributes.api.attribute;
 import com.github.clevernucleus.dataattributes.api.util.AdditionFunction;
 import com.github.clevernucleus.dataattributes.api.util.Maths;
 
+/**
+ * Contains both the FLAT and DIMINISHING stacking behaviours. Stacking behaviours determine how different sources of an attribute
+ * will stack(add). For example: Helmet provides +1 Armor and Chestplate provides +3 Armor; FLAT behaviour means the result is +4.
+ * DIMINISHING means the result is in accordance with {@link Maths#add(double, double, double)}}
+ * 
+ * @author CleverNucleus
+ *
+ */
 public enum StackingBehaviour {
 	FLAT((byte)0, (current, adding, limit) -> current + adding),
 	DIMINISHING((byte)1, Maths::add);
