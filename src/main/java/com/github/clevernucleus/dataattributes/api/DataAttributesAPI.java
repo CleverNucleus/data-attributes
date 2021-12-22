@@ -1,5 +1,6 @@
 package com.github.clevernucleus.dataattributes.api;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import net.minecraft.entity.EquipmentSlot;
@@ -54,5 +55,27 @@ public final class DataAttributesAPI {
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Allows for an Optional-like use of attributes that may or may not exist all the time. This is the correct way of getting and using
+	 * values from attributes loaded by datapacks.
+	 * @param <T>
+	 * @param livingEntity
+	 * @param supplier
+	 * @param fallback
+	 * @param function
+	 * @return If the input attribute is both registered to the game and present on the input entity, returns the returning value of the input function.
+	 * Else returns the fallback input.
+	 */
+	public static <T> T ifPresent(final LivingEntity livingEntity, Supplier<EntityAttribute> supplier, final T fallback, Function<Float, T> function) {
+		AttributeContainer container = livingEntity.getAttributes();
+		EntityAttribute attribute = supplier.get();
+		
+		if(attribute != null && container.hasAttribute(attribute)) {
+			return function.apply((float)container.getValue(attribute));
+		}
+		
+		return fallback;
 	}
 }
