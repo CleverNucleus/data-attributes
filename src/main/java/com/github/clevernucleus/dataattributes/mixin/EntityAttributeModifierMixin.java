@@ -20,30 +20,30 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 abstract class EntityAttributeModifierMixin implements MutableAttributeModifier {
 	
 	@Unique
-	private double data$value;
+	private double data_value;
 	
 	@Inject(method = "<init>(Ljava/util/UUID;Ljava/util/function/Supplier;DLnet/minecraft/entity/attribute/EntityAttributeModifier$Operation;)V", at = @At("TAIL"))
 	private void init(UUID uuid, Supplier<String> nameGetter, double value, EntityAttributeModifier.Operation operation, CallbackInfo info) {
-		this.data$value = value;
+		this.data_value = value;
 	}
 	
 	@Inject(method = "getValue", at = @At("HEAD"), cancellable = true)
 	private void onGetValue(CallbackInfoReturnable<Double> info) {
-		info.setReturnValue(this.data$value);
+		info.setReturnValue(this.data_value);
 	}
 	
 	@Redirect(method = "toString", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/attribute/EntityAttributeModifier;value:D", opcode = Opcodes.GETFIELD))
 	private double onToString(EntityAttributeModifier modifier) {
-		return this.data$value;
+		return this.data_value;
 	}
 	
 	@Redirect(method = "toNbt", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/attribute/EntityAttributeModifier;value:D", opcode = Opcodes.GETFIELD))
 	private double onToNbt(EntityAttributeModifier modifier) {
-		return this.data$value;
+		return this.data_value;
 	}
 	
 	@Override
 	public void updateValue(double value) {
-		this.data$value = value;
+		this.data_value = value;
 	}
 }

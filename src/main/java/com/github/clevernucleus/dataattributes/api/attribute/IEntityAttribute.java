@@ -45,7 +45,20 @@ public interface IEntityAttribute {
 	 * @param adding
 	 * @return
 	 */
-	double stack(double current, double adding);
+	double stack(double current, double input);
+	
+	/**
+	 * Convenience method used internally to sum the negative and positive value instances together correctly.
+	 * @param positives
+	 * @param negatives
+	 * @return
+	 */
+	double sumStack(double positives, double negatives);
+	
+	/**
+	 * @return The attribute's stacking behaviour.
+	 */
+	StackingBehaviour stackingBehaviour();
 	
 	/**
 	 * @return The attribute's translation key (references a lang json name).

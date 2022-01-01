@@ -17,7 +17,7 @@ import net.minecraft.entity.attribute.EntityAttributeInstance;
 abstract class AttributeContainerMixin implements MutableAttributeContainer {
 	
 	@Unique
-	private LivingEntity data$livingEntity;
+	private LivingEntity data_livingEntity;
 	
 	@Inject(method = "getCustomInstance", at = @At("RETURN"), cancellable = true)
 	private void onGetCustomInstance(CallbackInfoReturnable<EntityAttributeInstance> info) {
@@ -32,11 +32,11 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 	
 	@Override
 	public void setLivingEntity(final LivingEntity livingEntity) {
-		this.data$livingEntity = livingEntity;
+		this.data_livingEntity = livingEntity;
 	}
 	
 	@Override
 	public LivingEntity getLivingEntity() {
-		return this.data$livingEntity;
+		return this.data_livingEntity;
 	}
 }

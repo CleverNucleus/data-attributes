@@ -45,7 +45,7 @@ abstract class ClampedEntityAttributeMixin extends EntityAttributeMixin {
 	@Override
 	public void clear() {
 		super.clear();
-		this.data$minValue = this.minValue;
-		this.data$maxValue = this.maxValue;
+		this.data_minValue = this.minValue;
+		this.data_maxValue = this.maxValue;
 	}
 }

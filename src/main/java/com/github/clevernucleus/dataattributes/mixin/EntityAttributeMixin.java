@@ -26,11 +26,11 @@ import net.minecraft.util.math.MathHelper;
 
 @Mixin(EntityAttribute.class)
 abstract class EntityAttributeMixin implements MutableEntityAttribute {
-	@Unique private Map<IEntityAttribute, Double> data$parents, data$children;
-	@Unique private Map<String, String> data$properties;
-	@Unique private StackingBehaviour data$stackingBehaviour;
-	@Unique private String data$translationKey;
-	@Unique protected double data$fallbackValue, data$minValue, data$maxValue;
+	@Unique private Map<IEntityAttribute, Double> data_parents, data_children;
+	@Unique private Map<String, String> data_properties;
+	@Unique private StackingBehaviour data_stackingBehaviour;
+	@Unique private String data_translationKey;
+	@Unique protected double data_fallbackValue, data_minValue, data_maxValue;
 	
 	@Final
 	@Shadow
@@ -42,14 +42,14 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void init(String translationKey, double fallback, CallbackInfo info) {
-		this.data$translationKey = translationKey;
-		this.data$fallbackValue = fallback;
-		this.data$minValue = fallback;
-		this.data$maxValue = fallback;
-		this.data$stackingBehaviour = StackingBehaviour.FLAT;
-		this.data$parents = new Object2DoubleArrayMap<IEntityAttribute>();
-		this.data$children = new Object2DoubleArrayMap<IEntityAttribute>();
-		this.data$properties = new HashMap<String, String>();
+		this.data_translationKey = translationKey;
+		this.data_fallbackValue = fallback;
+		this.data_minValue = 0.0D;
+		this.data_maxValue = Integer.MAX_VALUE;
+		this.data_stackingBehaviour = StackingBehaviour.FLAT;
+		this.data_parents = new Object2DoubleArrayMap<IEntityAttribute>();
+		this.data_children = new Object2DoubleArrayMap<IEntityAttribute>();
+		this.data_properties = new HashMap<String, String>();
 	}
 	
 	@Override
@@ -67,7 +67,7 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	
 	@Override
 	public void addParent(MutableEntityAttribute attributeIn, double multiplier) {
-		this.data$parents.put(attributeIn, multiplier);
+		this.data_parents.put(attributeIn, multiplier);
 	}
 	
 	@Override
@@ -75,45 +75,45 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 		if(this.contains(this, attributeIn)) return;
 		
 		attributeIn.addParent(this, multiplier);
-		this.data$children.put(attributeIn, multiplier);
+		this.data_children.put(attributeIn, multiplier);
 	}
 	
 	@Override
 	public void transferAttribute(String translationKey, double minValue, double maxValue, double defaultValue, StackingBehaviour stackingBehaviour) {
-		this.data$translationKey = translationKey;
-		this.data$minValue = minValue;
-		this.data$maxValue = maxValue;
-		this.data$fallbackValue = defaultValue;
-		this.data$stackingBehaviour = stackingBehaviour;
+		this.data_translationKey = translationKey;
+		this.data_minValue = minValue;
+		this.data_maxValue = maxValue;
+		this.data_fallbackValue = defaultValue;
+		this.data_stackingBehaviour = stackingBehaviour;
 	}
 	
 	@Override
 	public void transferProperties(Map<String, String> properties) {
 		if(properties == null) return;
-		this.data$properties = properties;
+		this.data_properties = properties;
 	}
 	
 	@Override
 	public void clear() {
 		this.transferAttribute(this.translationKey, this.fallback, this.fallback, this.fallback, StackingBehaviour.FLAT);
 		this.transferProperties(new HashMap<String, String>());
-		this.data$parents.clear();
-		this.data$children.clear();
+		this.data_parents.clear();
+		this.data_children.clear();
 	}
 	
 	@Override
 	public double getDefaultValue() {
-		return this.data$fallbackValue;
+		return this.data_fallbackValue;
 	}
 	
 	@Override
 	public double getMinValue() {
-		return this.data$minValue;
+		return this.data_minValue;
 	}
 	
 	@Override
 	public double getMaxValue() {
-		return this.data$maxValue;
+		return this.data_maxValue;
 	}
 	
 	@Override
@@ -131,47 +131,61 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public double stack(double current, double adding) {
-		return this.data$stackingBehaviour.result(current, adding, this.getMaxValue());
+	public double stack(final double current, final double input) {
+		return this.data_stackingBehaviour.result(current, input);
+	}
+	
+	@Override
+	public double sumStack(double positives, double negatives) {
+		if(this.data_stackingBehaviour == StackingBehaviour.DIMINISHING) {
+			return negatives - positives;
+		} else {
+			return positives - negatives;
+		}
+	}
+	
+	@Override
+	public StackingBehaviour stackingBehaviour() {
+		return this.data_stackingBehaviour;
 	}
 	
 	@Override
 	public String getTranslationKey() {
-		return this.data$translationKey;
+		return this.data_translationKey;
 	}
 	
 	@Override
 	public Map<IEntityAttribute, Double> parentsMutable() {
-		return this.data$parents;
+		return this.data_parents;
 	}
 	
 	@Override
 	public Map<IEntityAttribute, Double> childrenMutable() {
-		return this.data$children;
+		return this.data_children;
 	}
 	
 	@Override
 	public Map<IEntityAttribute, Double> parents() {
-		return ImmutableMap.copyOf(this.data$parents);
+		return ImmutableMap.copyOf(this.data_parents);
 	}
 	
 	@Override
 	public Map<IEntityAttribute, Double> children() {
-		return ImmutableMap.copyOf(this.data$children);
+		return ImmutableMap.copyOf(this.data_children);
 	}
 	
 	@Override
 	public Collection<String> properties() {
-		return ImmutableSet.copyOf(this.data$properties.keySet());
+		return ImmutableSet.copyOf(this.data_properties.keySet());
 	}
 	
 	@Override
 	public boolean hasProperty(final String property) {
-		return this.data$properties.containsKey(property);
+		return this.data_properties.containsKey(property);
 	}
 	
 	@Override
 	public String getProperty(final String property) {
-		return this.data$properties.getOrDefault(property, "");
+		return this.data_properties.getOrDefault(property, "");
 	}
 }

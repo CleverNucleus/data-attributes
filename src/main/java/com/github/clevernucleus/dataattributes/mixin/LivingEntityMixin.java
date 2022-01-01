@@ -20,21 +20,21 @@ import net.minecraft.world.World;
 abstract class LivingEntityMixin {
 	
 	@Unique
-	private AttributeContainer data$attributes;
+	private AttributeContainer data_attributes;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void init(EntityType<? extends LivingEntity> entityType, World world, CallbackInfo info) {
-		this.data$attributes = new AttributeContainer(DataAttributes.MANAGER.containers.getOrDefault(entityType, DefaultAttributeRegistry.get(entityType)));
+		this.data_attributes = new AttributeContainer(DataAttributes.MANAGER.containers.getOrDefault(entityType, DefaultAttributeRegistry.get(entityType)));
 		
 		LivingEntity livingEntity = (LivingEntity)(Object)this;
 		livingEntity.setHealth(livingEntity.getMaxHealth());
-		((MutableAttributeContainer)this.data$attributes).setLivingEntity(livingEntity);
+		((MutableAttributeContainer)this.data_attributes).setLivingEntity(livingEntity);
 	}
 	
 	@Inject(method = "getAttributes", at = @At("RETURN"), cancellable = true)
 	private void attributes(CallbackInfoReturnable<AttributeContainer> info) {
-		if(this.data$attributes != null) {
-			info.setReturnValue(this.data$attributes);
+		if(this.data_attributes != null) {
+			info.setReturnValue(this.data_attributes);
 		}
 	}
 }

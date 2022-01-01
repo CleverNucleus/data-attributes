@@ -35,7 +35,7 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance, MutableAttributeInstance {
 	
 	@Unique
-	private Optional<AttributeContainer> data$containerCallback = Optional.empty();
+	private Optional<AttributeContainer> data_containerCallback = Optional.empty();
 	
 	@Final
 	@Shadow
@@ -63,26 +63,45 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 	@Inject(method = "computeValue", at = @At("HEAD"), cancellable = true)
 	private void onComputeValue(CallbackInfoReturnable<Double> info) {
 		IEntityAttribute attribute = (IEntityAttribute)this.type;
-		double d = this.baseValue;
+		double k = 1.0D, v = 1.0D;
 		
-		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.ADDITION)) {
-			d = attribute.stack(d, modifier.getValue());
+		if(this.baseValue > 0.0D) {
+			k = attribute.stack(k, this.baseValue);
+		} else {
+			v = attribute.stack(v, this.baseValue);
 		}
 		
-		if(this.data$containerCallback.isPresent()) {
+		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.ADDITION)) {
+			double value = modifier.getValue();
+			
+			if(value > 0.0D) {
+				k = attribute.stack(k, value);
+			} else {
+				v = attribute.stack(v, value);
+			}
+		}
+		
+		if(this.data_containerCallback.isPresent()) {
 			Map<IEntityAttribute, Double> parents = ((MutableEntityAttribute)this.type).parentsMutable();
 			
 			for(IEntityAttribute parent : parents.keySet()) {
 				EntityAttribute dataAttribute = (EntityAttribute)parent;
-				EntityAttributeInstance instance = this.data$containerCallback.get().getCustomInstance(dataAttribute);
+				EntityAttributeInstance instance = this.data_containerCallback.get().getCustomInstance(dataAttribute);
 				
 				if(instance == null) continue;
 				
 				double mult = parents.get(parent);
-				d = attribute.stack(d, mult * instance.getValue());
+				double value = mult * instance.getValue();
+				
+				if(value > 0.0D) {
+					k = attribute.stack(k, value);
+				} else {
+					v = attribute.stack(v, value);
+				}
 			}
 		}
 		
+		double d = attribute.sumStack(k, v);
 		double e = d;
 		
 		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.MULTIPLY_BASE)) {
@@ -133,7 +152,7 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 	public void actionModifier(final VoidConsumer consumerIn, final EntityAttributeInstance instanceIn, final EntityAttributeModifier modifierIn, final boolean isWasAdded) {
 		MutableEntityAttribute parent = (MutableEntityAttribute)this.type;
 		
-		this.data$containerCallback.ifPresent(container -> {
+		this.data_containerCallback.ifPresent(container -> {
 			for(IEntityAttribute child : parent.childrenMutable().keySet()) {
 				EntityAttribute attribute = (EntityAttribute)child;
 				EntityAttributeInstance instance = container.getCustomInstance(attribute);
@@ -178,7 +197,7 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 	
 	@Override
 	public void setContainerCallback(AttributeContainer container) {
-		this.data$containerCallback = Optional.ofNullable(container);
+		this.data_containerCallback = Optional.ofNullable(container);
 	}
 	
 	@Override
