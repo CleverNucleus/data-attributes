@@ -14,7 +14,7 @@ import net.minecraft.util.math.MathHelper;
  *
  */
 public enum StackingBehaviour {
-	FLAT((byte)0, (c, i) -> c + i, v -> v),
+	FLAT((byte)0, (c, i) -> c + Math.abs(i), v -> v),
 	DIMINISHING((byte)1, (c, i) -> c * (1.0D - Math.abs(i)), v -> MathHelper.clamp(v, -1.0D, 1.0D));
 	
 	private final byte id;
