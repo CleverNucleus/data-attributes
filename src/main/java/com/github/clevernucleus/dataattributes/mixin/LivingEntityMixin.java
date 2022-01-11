@@ -31,7 +31,7 @@ abstract class LivingEntityMixin {
 		((MutableAttributeContainer)this.data_attributes).setLivingEntity(livingEntity);
 	}
 	
-	@Inject(method = "getAttributes", at = @At("RETURN"), cancellable = true)
+	@Inject(method = "getAttributes", at = @At("HEAD"), cancellable = true)
 	private void attributes(CallbackInfoReturnable<AttributeContainer> info) {
 		if(this.data_attributes != null) {
 			info.setReturnValue(this.data_attributes);
