@@ -62,7 +62,7 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 	
 	@Inject(method = "computeValue", at = @At("HEAD"), cancellable = true)
 	private void onComputeValue(CallbackInfoReturnable<Double> info) {
-		IEntityAttribute attribute = (IEntityAttribute)this.type;
+		MutableEntityAttribute attribute = (MutableEntityAttribute)this.type;
 		double k = 1.0D, v = 1.0D;
 		
 		if(this.baseValue > 0.0D) {

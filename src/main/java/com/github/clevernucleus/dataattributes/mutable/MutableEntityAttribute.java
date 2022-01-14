@@ -10,6 +10,10 @@ public interface MutableEntityAttribute extends IEntityAttribute {
 	
 	Map<IEntityAttribute, Double> childrenMutable();
 	
+	double sumStack(double positives, double negatives);
+	
+	double stack(double current, double input);
+	
 	boolean contains(MutableEntityAttribute a, MutableEntityAttribute b);
 	
 	void addParent(MutableEntityAttribute attributeIn, final double multiplier);

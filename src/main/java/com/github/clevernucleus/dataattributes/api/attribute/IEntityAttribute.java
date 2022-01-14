@@ -13,57 +13,19 @@ import java.util.Map;
 public interface IEntityAttribute {
 	
 	/**
-	 * @return The attribute's default value.
-	 */
-	double getDefaultValue();
-	
-	/**
 	 * @return The attribute's minimum value;
 	 */
-	double getMinValue();
+	double minValue();
 	
 	/**
 	 * @return The attribute's maximum value;
 	 */
-	double getMaxValue();
-	
-	/**
-	 * Checks if instances of this attribute should synchronize values to clients.
-	 * @return
-	 */
-	boolean isTracked();
-	
-	/**
-	 * @param value A value, usually the attribute's current data value.
-	 * @return For EntityAttribute, returns the input. For ClampedEntityAttribute, returns a clamped value between the min and max.
-	 */
-	double clamp(double value);
-	
-	/**
-	 * Stacks two values based on this attribute's stacking behaviour.
-	 * @param current
-	 * @param adding
-	 * @return
-	 */
-	double stack(double current, double input);
-	
-	/**
-	 * Convenience method used internally to sum the negative and positive value instances together correctly.
-	 * @param positives
-	 * @param negatives
-	 * @return
-	 */
-	double sumStack(double positives, double negatives);
+	double maxValue();
 	
 	/**
 	 * @return The attribute's stacking behaviour.
 	 */
 	StackingBehaviour stackingBehaviour();
-	
-	/**
-	 * @return The attribute's translation key (references a lang json name).
-	 */
-	String getTranslationKey();
 	
 	/**
 	 * @return An immutable map of the function-parents attached to this attribute.

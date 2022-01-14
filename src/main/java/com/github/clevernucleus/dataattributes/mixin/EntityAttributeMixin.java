@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttribute;
 import com.github.clevernucleus.dataattributes.api.attribute.StackingBehaviour;
@@ -44,12 +45,32 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	private void init(String translationKey, double fallback, CallbackInfo info) {
 		this.data_translationKey = translationKey;
 		this.data_fallbackValue = fallback;
-		this.data_minValue = 0.0D;
+		this.data_minValue = Integer.MIN_VALUE;
 		this.data_maxValue = Integer.MAX_VALUE;
 		this.data_stackingBehaviour = StackingBehaviour.FLAT;
 		this.data_parents = new Object2DoubleArrayMap<IEntityAttribute>();
 		this.data_children = new Object2DoubleArrayMap<IEntityAttribute>();
 		this.data_properties = new HashMap<String, String>();
+	}
+	
+	@Inject(method = "getDefaultValue", at = @At("HEAD"), cancellable = true)
+	private void onGetDefaultValue(CallbackInfoReturnable<Double> info) {
+		info.setReturnValue(this.data_fallbackValue);
+	}
+	
+	@Inject(method = "isTracked", at = @At("HEAD"), cancellable = true)
+	private void onIsTracked(CallbackInfoReturnable<Boolean> info) {
+		info.setReturnValue(true);
+	}
+	
+	@Inject(method = "clamp", at = @At("HEAD"), cancellable = true)
+	private void onClamp(double value, CallbackInfoReturnable<Double> info) {
+		info.setReturnValue(this.data_clamp(value));
+	}
+	
+	@Inject(method = "getTranslationKey", at = @At("HEAD"), cancellable = true)
+	private void onGetTranslationKey(CallbackInfoReturnable<String> info) {
+		info.setReturnValue(this.data_translationKey);
 	}
 	
 	@Override
@@ -102,32 +123,13 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public double getDefaultValue() {
-		return this.data_fallbackValue;
-	}
-	
-	@Override
-	public double getMinValue() {
+	public double minValue() {
 		return this.data_minValue;
 	}
 	
 	@Override
-	public double getMaxValue() {
+	public double maxValue() {
 		return this.data_maxValue;
-	}
-	
-	@Override
-	public boolean isTracked() {
-		return true;
-	}
-	
-	@Override
-	public double clamp(double value) {
-		final MutableDouble mutable = new MutableDouble(value);
-		
-		EntityAttributeModifiedEvents.CLAMPED.invoker().onClamped((EntityAttribute)(Object)this, mutable);
-		
-		return MathHelper.clamp(mutable.getValue(), this.getMinValue(), this.getMaxValue());
 	}
 	
 	@Override
@@ -147,11 +149,6 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	@Override
 	public StackingBehaviour stackingBehaviour() {
 		return this.data_stackingBehaviour;
-	}
-	
-	@Override
-	public String getTranslationKey() {
-		return this.data_translationKey;
 	}
 	
 	@Override
@@ -187,5 +184,13 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	@Override
 	public String getProperty(final String property) {
 		return this.data_properties.getOrDefault(property, "");
+	}
+	
+	protected double data_clamp(double value) {
+		final MutableDouble mutable = new MutableDouble(value);
+		
+		EntityAttributeModifiedEvents.CLAMPED.invoker().onClamped((EntityAttribute)(Object)this, mutable);
+		
+		return MathHelper.clamp(mutable.getValue(), this.minValue(), this.maxValue());
 	}
 }

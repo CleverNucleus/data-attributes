@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.github.clevernucleus.dataattributes.api.attribute.StackingBehaviour;
 
@@ -27,19 +28,19 @@ abstract class ClampedEntityAttributeMixin extends EntityAttributeMixin {
 		this.transferAttribute(translationKey, min, max, fallback, StackingBehaviour.FLAT);
 	}
 	
-	@Override
-	public double getMinValue() {
-		return super.getMinValue();
+	@Inject(method = "getMinValue", at = @At("HEAD"), cancellable = true)
+	private void onGetMinValue(CallbackInfoReturnable<Double> info) {
+		info.setReturnValue(this.minValue());
 	}
 	
-	@Override
-	public double getMaxValue() {
-		return super.getMaxValue();
+	@Inject(method = "getMaxValue", at = @At("HEAD"), cancellable = true)
+	private void onGetMaxValue(CallbackInfoReturnable<Double> info) {
+		info.setReturnValue(this.maxValue());
 	}
 	
-	@Override
-	public double clamp(double value) {
-		return super.clamp(value);
+	@Inject(method = "clamp", at = @At("HEAD"), cancellable = true)
+	private void onClamp(double value, CallbackInfoReturnable<Double> info) {
+		info.setReturnValue(this.data_clamp(value));
 	}
 	
 	@Override
