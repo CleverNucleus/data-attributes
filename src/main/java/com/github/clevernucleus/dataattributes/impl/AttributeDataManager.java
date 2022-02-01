@@ -41,7 +41,7 @@ public final class AttributeDataManager implements SimpleSynchronousResourceRelo
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final String DIRECTORY = "attributes";
 	private static final Identifier ID = new Identifier(DataAttributesAPI.MODID, DIRECTORY);
-	
+	private boolean isLoaded = false;
 	public final Map<Identifier, AttributeWrapper> attributes;
 	public final Map<Identifier, EntityTypeAttributes> entityTypes;
 	public final Map<EntityType<? extends LivingEntity>, DefaultAttributeContainer> containers;
@@ -272,11 +272,13 @@ public final class AttributeDataManager implements SimpleSynchronousResourceRelo
 	
 	@Override
 	public void reload(ResourceManager manager) {
+		if(this.isLoaded) return;
 		this.clear();
 		this.loadAttributeOverrides(manager);
 		this.loadAttributeFunctions(manager);
 		this.loadAttributeProperties(manager);
 		this.loadAttributeContainers(manager);
+		this.isLoaded = true;
 	}
 	
 	@Override
