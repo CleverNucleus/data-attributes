@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.github.clevernucleus.dataattributes.mutable.MutableSimpleRegistry;
-import com.google.common.collect.BiMap;
 import com.mojang.serialization.Lifecycle;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -38,11 +37,11 @@ abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 	
 	@Final
 	@Shadow
-	private BiMap<Identifier, T> idToEntry;
+	private Map<Identifier, T> idToEntry;
 	
 	@Final
 	@Shadow
-	private BiMap<RegistryKey<T>, T> keyToEntry;
+	private Map<RegistryKey<T>, T> keyToEntry;
 	
 	@Final
 	@Shadow
