@@ -14,7 +14,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 public final class EntityTypeAttributes {
-	private final Map<Identifier, Double> attributes;
+	public final Map<Identifier, Double> attributes;
 	
 	public EntityTypeAttributes() {
 		this.attributes = new HashMap<Identifier, Double>();

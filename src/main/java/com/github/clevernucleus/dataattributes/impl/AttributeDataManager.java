@@ -262,12 +262,21 @@ public final class AttributeDataManager implements SimpleSynchronousResourceRelo
 			
 			EntityTypeAttributes entityTypeAttributes = this.entityTypes.get(identifier);
 			
+			entityTypeAttributes.attributes.keySet().forEach(c -> System.out.println("PENIS: " + c));
+			
 			@SuppressWarnings("unchecked")
 			EntityType<? extends LivingEntity> entityType = (EntityType<? extends LivingEntity>)Registry.ENTITY_TYPE.get(identifier);
 			DefaultAttributeContainer.Builder builder = DefaultAttributeContainer.builder();
 			entityTypeAttributes.build(builder, DefaultAttributeRegistry.get(entityType));
 			this.containers.put(entityType, builder.build());
 		}
+		
+		this.containers.forEach((type, container) -> {
+			boolean l = container.has(DataAttributesAPI.getAttribute(new Identifier("dataattributes:level")).get());
+			boolean l2 = container.has(DataAttributesAPI.getAttribute(new Identifier("playerex:constitution")).get());
+			
+			System.out.println("TEST#1: " + type.toString() + "; level: " + l + "; constitution: " + l2);
+		});
 	}
 	
 	@Override

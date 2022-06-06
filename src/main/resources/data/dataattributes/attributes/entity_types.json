@@ -1,0 +1,7 @@
+{
+    "values": {
+        "minecraft:player": {
+            "dataattributes:level": 0.0
+        }
+    }
+}
