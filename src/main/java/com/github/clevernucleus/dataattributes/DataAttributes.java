@@ -36,7 +36,8 @@ public class DataAttributes implements ModInitializer {
 	public static final Identifier RELOAD = new Identifier(DataAttributesAPI.MODID, "reload");
 	public static final AttributeManager MANAGER = new AttributeManager();
 	protected static String version = "";
-	protected static byte[] majorVersion;
+	protected static byte[] semVer;
+	private static final byte VER_SIZE = 3;
 	
 	private static void loginQueryStart(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
 		PacketByteBuf buf = PacketByteBufs.create();
@@ -50,7 +51,7 @@ public class DataAttributes implements ModInitializer {
 		if(understood) {
 			byte[] version = buf.readByteArray();
 			
-			if(version[0] != DataAttributes.majorVersion[0] || version[1] != DataAttributes.majorVersion[1]) {
+			if(version[0] != DataAttributes.semVer[0] || version[1] != DataAttributes.semVer[1]) {
 				StringBuilder errorVersion = new StringBuilder();
 				
 				for(byte i : version) {
@@ -79,11 +80,11 @@ public class DataAttributes implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		version = FabricLoader.getInstance().getModContainer(DataAttributesAPI.MODID).get().getMetadata().getVersion().getFriendlyString();
-		String[] versionArray = Arrays.copyOf(version.split("\\."), 3);
-		majorVersion = new byte[Math.max(versionArray.length, 3)];
+		String[] versionArray = Arrays.copyOf(version.split("\\."), VER_SIZE);
+		semVer = new byte[Math.max(versionArray.length, VER_SIZE)];
 		
-		for(int i = 0; i < majorVersion.length; i++) {
-			majorVersion[i] = (byte)Maths.parseInt(versionArray[i]);
+		for(int i = 0; i < semVer.length; i++) {
+			semVer[i] = (byte)Maths.parseInt(versionArray[i]);
 		}
 		
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(MANAGER);

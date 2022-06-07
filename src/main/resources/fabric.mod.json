@@ -8,8 +8,8 @@
         "CleverNucleus"
     ],
     "contact": {
-        "homepage": "https://github.com/CleverNucleus/DataAttributes",
-        "sources": "https://github.com/CleverNucleus/DataAttributes"
+        "homepage": "https://github.com/CleverNucleus/Data-Attributes",
+        "sources": "https://github.com/CleverNucleus/Data-Attributes"
     },
     "license": "MIT",
     "icon": "assets/dataattributes/icon.png",

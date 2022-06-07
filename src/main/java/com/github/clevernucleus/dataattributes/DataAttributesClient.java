@@ -31,7 +31,7 @@ public class DataAttributesClient implements ClientModInitializer {
 		});
 		
 		PacketByteBuf bufOut = PacketByteBufs.create();
-		bufOut.writeByteArray(DataAttributes.majorVersion);
+		bufOut.writeByteArray(DataAttributes.semVer);
 		
 		return CompletableFuture.completedFuture(bufOut);
 	}
