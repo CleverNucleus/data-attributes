@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -30,12 +32,17 @@ import net.minecraft.entity.attribute.AttributeContainer;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 @Mixin(EntityAttributeInstance.class)
-abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance, MutableAttributeInstance {
+abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance, IEntityAttributeInstance {
 	
 	@Unique
 	private Optional<AttributeContainer> data_containerCallback = Optional.empty();
+	
+	@Unique
+	private Identifier data_identifier;
 	
 	@Final
 	@Shadow
@@ -45,63 +52,72 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 	@Shadow
 	private Set<EntityAttributeModifier> persistentModifiers;
 	
-	@Final
-	@Shadow
-	private EntityAttribute type;
-	
 	@Shadow
 	private double baseValue;
-	
-	@Shadow
-	protected void onUpdate() {}
 	
 	@Shadow
 	private Collection<EntityAttributeModifier> getModifiersByOperation(EntityAttributeModifier.Operation operation) {
 		return Collections.emptySet();
 	}
 	
+	@Shadow
+	protected void onUpdate() {}
+	
+	@Inject(method = "<init>", at = @At("TAIL"))
+	private void data_init(EntityAttribute type, Consumer<EntityAttributeInstance> updateCallback, CallbackInfo info) {
+		this.data_identifier = Registry.ATTRIBUTE.getId(type);
+	}
+	
+	@Inject(method = "getAttribute", at = @At("HEAD"), cancellable = true)
+	private void data_getAttribute(CallbackInfoReturnable<EntityAttribute> info) {
+		EntityAttribute attribute = Registry.ATTRIBUTE.get(this.data_identifier);
+		
+		if(attribute != null) {
+			info.setReturnValue(attribute);
+		}
+	}
+	
 	@Inject(method = "computeValue", at = @At("HEAD"), cancellable = true)
-	private void onComputeValue(CallbackInfoReturnable<Double> info) {
-		MutableEntityAttribute attribute = (MutableEntityAttribute)this.type;
-		double k = 1.0D, v = 1.0D;
+	private void data_computeValue(CallbackInfoReturnable<Double> info) {
+		MutableEntityAttribute attribute = (MutableEntityAttribute)Registry.ATTRIBUTE.get(this.data_identifier);
+		double k = 0.0D, v = 0.0D;
 		
 		if(this.baseValue > 0.0D) {
-			k = attribute.stack(k, this.baseValue);
+			k = attribute.stackingBehaviour().stack(k, this.baseValue);
 		} else {
-			v = attribute.stack(v, this.baseValue);
+			v = attribute.stackingBehaviour().stack(v, this.baseValue);
 		}
 		
 		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.ADDITION)) {
 			double value = modifier.getValue();
 			
 			if(value > 0.0D) {
-				k = attribute.stack(k, value);
+				k = attribute.stackingBehaviour().stack(k, value);
 			} else {
-				v = attribute.stack(v, value);
+				v = attribute.stackingBehaviour().stack(v, value);
 			}
 		}
 		
 		if(this.data_containerCallback.isPresent()) {
-			Map<IEntityAttribute, Double> parents = ((MutableEntityAttribute)this.type).parentsMutable();
+			Map<IEntityAttribute, Double> parents = ((MutableEntityAttribute)attribute).parentsMutable();
 			
 			for(IEntityAttribute parent : parents.keySet()) {
-				EntityAttribute dataAttribute = (EntityAttribute)parent;
-				EntityAttributeInstance instance = this.data_containerCallback.get().getCustomInstance(dataAttribute);
+				EntityAttributeInstance instance = this.data_containerCallback.get().getCustomInstance((EntityAttribute)parent);
 				
 				if(instance == null) continue;
 				
-				double mult = parents.get(parent);
-				double value = mult * instance.getValue();
+				double multiplier = parents.get(parent);
+				double value = multiplier * instance.getValue();
 				
 				if(value > 0.0D) {
-					k = attribute.stack(k, value);
+					k = attribute.stackingBehaviour().stack(k, value);
 				} else {
-					v = attribute.stack(v, value);
+					v = attribute.stackingBehaviour().stack(v, value);
 				}
 			}
 		}
 		
-		double d = attribute.sumStack(k, v);
+		double d = attribute.sum(k, v);
 		double e = d;
 		
 		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.MULTIPLY_BASE)) {
@@ -112,13 +128,12 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 			e *= 1.0D + modifier.getValue();
 		}
 		
-		double r = this.type.clamp(e);
-		
-		info.setReturnValue(r);
+		double value = ((EntityAttribute)attribute).clamp(e);
+		info.setReturnValue(value);
 	}
 	
 	@Inject(method = "addModifier", at = @At("HEAD"), cancellable = true)
-	private void onAddModifier(EntityAttributeModifier modifier, CallbackInfo info) {
+	private void data_addModifier(EntityAttributeModifier modifier, CallbackInfo info) {
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
 		UUID key = modifier.getId();
 		EntityAttributeModifier entityAttributeModifier = (EntityAttributeModifier)this.idToModifiers.get(key);
@@ -134,9 +149,8 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 		
 		info.cancel();
 	}
-	
 	@Inject(method = "removeModifier", at = @At("HEAD"), cancellable = true)
-	private void onRemoveModifier(EntityAttributeModifier modifier, CallbackInfo info) {
+	private void data_removeModifier(EntityAttributeModifier modifier, CallbackInfo info) {
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
 		
 		this.actionModifier(() -> {
@@ -148,9 +162,20 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 		info.cancel();
 	}
 	
+	@Redirect(method = "toNbt", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/registry/Registry;getId(Ljava/lang/Object;)Lnet/minecraft/util/Identifier;"))
+	private Identifier data_toNbt(Registry<?> registry, Object type) {
+		return this.data_identifier;
+	}
+	
+	@Override
+	public Identifier getId() {
+		return this.data_identifier;
+	}
+	
 	@Override
 	public void actionModifier(final VoidConsumer consumerIn, final EntityAttributeInstance instanceIn, final EntityAttributeModifier modifierIn, final boolean isWasAdded) {
-		MutableEntityAttribute parent = (MutableEntityAttribute)this.type;
+		EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(this.data_identifier);
+		MutableEntityAttribute parent = (MutableEntityAttribute)entityAttribute;
 		
 		this.data_containerCallback.ifPresent(container -> {
 			for(IEntityAttribute child : parent.childrenMutable().keySet()) {
@@ -170,7 +195,7 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 			
 			LivingEntity livingEntity = ((MutableAttributeContainer)container).getLivingEntity();
 			
-			EntityAttributeModifiedEvents.MODIFIED.invoker().onModified(this.type, livingEntity, modifierIn, value, isWasAdded);
+			EntityAttributeModifiedEvents.MODIFIED.invoker().onModified(entityAttribute, livingEntity, modifierIn, value, isWasAdded);
 			
 			for(IEntityAttribute child : parent.childrenMutable().keySet()) {
 				EntityAttribute attribute = (EntityAttribute)child;
@@ -184,6 +209,11 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 	}
 	
 	@Override
+	public void setContainerCallback(final AttributeContainer containerIn) {
+		this.data_containerCallback = Optional.ofNullable(containerIn);
+	}
+	
+	@Override
 	public void updateModifier(final UUID uuid, final double value) {
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
 		EntityAttributeModifier modifier = instance.getModifier(uuid);
@@ -193,15 +223,5 @@ abstract class EntityAttributeInstanceMixin implements IEntityAttributeInstance,
 		this.actionModifier(() -> {
 			((MutableAttributeModifier)modifier).updateValue(value);
 		}, instance, modifier, false);
-	}
-	
-	@Override
-	public void setContainerCallback(AttributeContainer container) {
-		this.data_containerCallback = Optional.ofNullable(container);
-	}
-	
-	@Override
-	public void update() {
-		this.onUpdate();
 	}
 }

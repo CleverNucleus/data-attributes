@@ -1,4 +1,4 @@
-package com.github.clevernucleus.dataattributes.api.util;
+package com.github.clevernucleus.dataattributes.api.item;
 
 import java.util.UUID;
 

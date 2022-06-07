@@ -30,6 +30,9 @@ import net.minecraft.util.registry.SimpleRegistry;
 @Mixin(SimpleRegistry.class)
 abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 	
+	@Unique
+	private Collection<Identifier> data_idCache;
+	
 	@Final
 	@Shadow
 	private ObjectList<RegistryEntry.Reference<T>> rawIdToEntry;
@@ -67,17 +70,14 @@ abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 	@Shadow
 	private int nextId;
 	
-	@Unique
-	private Collection<Identifier> idCache;
-	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void init(CallbackInfo info) {
-		this.idCache = new HashSet<Identifier>();
+	private void data_init(CallbackInfo info) {
+		this.data_idCache = new HashSet<Identifier>();
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Inject(method = "assertNotFrozen", at = @At("HEAD"), cancellable = true)
-	private void unfreeze(CallbackInfo info) {
+	private void data_assertNotFrozen(CallbackInfo info) {
 		if((SimpleRegistry<T>)(Object)this == Registry.ATTRIBUTE) {
 			info.cancel();
 		}
@@ -86,7 +86,6 @@ abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 	@SuppressWarnings("deprecation")
 	private <V extends T> void remove(RegistryKey<T> key, Lifecycle lifecycle) {
 		Validate.notNull(key);
-		
 		RegistryEntry.Reference<T> reference = this.keyToEntry.get(key);
 		T value = reference.value();
 		final int rawId = this.entryToRawId.getInt(value);
@@ -108,44 +107,20 @@ abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 				this.entryToRawId.replace(t, i - 1);
 			}
 		}
-		
-		/*
-		Validate.notNull(key);
-		
-		T entry = this.keyToEntry.get(key);
-		final int rawId = this.entryToRawId.getInt(entry);
-		
-		this.nextId--;
-		this.lifecycle = this.lifecycle.add(lifecycle);
-		this.entryToLifecycle.remove(entry);
-		this.keyToEntry.remove(key);
-		this.idToEntry.remove(key.getValue());
-		this.entryToRawId.remove(entry);
-		
-		for(T t : this.entryToRawId.keySet()) {
-			int i = this.entryToRawId.get(t);
-			
-			if(i > rawId) {
-				this.entryToRawId.replace(t, i - 1);
-			}
-		}
-		
-		this.rawIdToEntry.remove(rawId);*/
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void removeCachedIds(Registry<T> registry) {
-		for(Iterator<Identifier> iterator = this.idCache.iterator(); iterator.hasNext();) {
+		for(Iterator<Identifier> iterator = this.data_idCache.iterator(); iterator.hasNext();) {
 			Identifier id = iterator.next();
 			
-			this.remove(RegistryKey.of(((RegistryAccessor<T>)registry).getRegistryKey(), id), Lifecycle.stable());
+			this.remove(RegistryKey.of(registry.getKey(), id), Lifecycle.stable());
 			iterator.remove();
 		}
 	}
 	
 	@Override
 	public void cacheId(Identifier id) {
-		this.idCache.add(id);
+		this.data_idCache.add(id);
 	}
 }

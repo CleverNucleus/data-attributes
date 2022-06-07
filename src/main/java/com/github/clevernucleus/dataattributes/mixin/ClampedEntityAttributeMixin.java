@@ -24,23 +24,23 @@ abstract class ClampedEntityAttributeMixin extends EntityAttributeMixin {
 	private double maxValue;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void init(String translationKey, double fallback, double min, double max, CallbackInfo info) {
-		this.transferAttribute(translationKey, min, max, fallback, StackingBehaviour.FLAT);
+	private void data_init(String translationKey, double fallback, double min, double max, CallbackInfo info) {
+		this.override(translationKey, min, max, fallback, 0.0D, StackingBehaviour.FLAT);
 	}
 	
 	@Inject(method = "getMinValue", at = @At("HEAD"), cancellable = true)
-	private void onGetMinValue(CallbackInfoReturnable<Double> info) {
+	private void data_getMinValue(CallbackInfoReturnable<Double> info) {
 		info.setReturnValue(this.minValue());
 	}
 	
 	@Inject(method = "getMaxValue", at = @At("HEAD"), cancellable = true)
-	private void onGetMaxValue(CallbackInfoReturnable<Double> info) {
+	private void data_getMaxValue(CallbackInfoReturnable<Double> info) {
 		info.setReturnValue(this.maxValue());
 	}
 	
 	@Inject(method = "clamp", at = @At("HEAD"), cancellable = true)
-	private void onClamp(double value, CallbackInfoReturnable<Double> info) {
-		info.setReturnValue(this.data_clamp(value));
+	private void data_clamp(double value, CallbackInfoReturnable<Double> info) {
+		info.setReturnValue(this.data_clamped(value));
 	}
 	
 	@Override

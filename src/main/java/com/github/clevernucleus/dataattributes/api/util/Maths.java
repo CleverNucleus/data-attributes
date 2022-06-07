@@ -23,19 +23,19 @@ public final class Maths {
 	}
 	
 	/**
-	 * Parses a string to a float.
+	 * Safe string to int.
 	 * @param stringIn
 	 * @return
 	 */
-	public static float parse(final String stringIn) {
-		float result;
+	public static int parseInt(final String stringIn) {
+		int value;
 		
 		try {
-			result = (float)Float.valueOf(stringIn);
+			value = Integer.parseInt(stringIn);
 		} catch(NumberFormatException e) {
-			result = 0.0F;
+			value = 0;
 		}
 		
-		return result;
+		return value;
 	}
 }

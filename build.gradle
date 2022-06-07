@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.11-SNAPSHOT'
+	id 'fabric-loom' version '0.12-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -11,7 +11,7 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-
+	
 }
 
 dependencies {
@@ -23,7 +23,7 @@ dependencies {
 
 processResources {
 	inputs.property "version", project.version
-	
+
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
 	}
@@ -49,7 +49,7 @@ publishing {
 			from components.java
 		}
 	}
-	
+    
 	repositories {
 		
 	}

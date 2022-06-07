@@ -9,9 +9,9 @@ import net.minecraft.util.registry.Registry;
 public final class MutableRegistryImpl {
 	
 	@SuppressWarnings("unchecked")
-	public static <T extends EntityAttribute> T register(Registry<T> registry, Identifier id, T entry) {
+	public static <T extends EntityAttribute> T register(Registry<T> registry, Identifier id, T value) {
 		((MutableSimpleRegistry<T>)registry).cacheId(id);
-		return Registry.register(registry, id, entry);
+		return Registry.register(registry, id, value);
 	}
 	
 	@SuppressWarnings("unchecked")

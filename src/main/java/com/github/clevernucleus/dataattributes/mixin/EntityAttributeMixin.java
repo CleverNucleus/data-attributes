@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.mutable.MutableDouble;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,7 +30,7 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	@Unique private Map<String, String> data_properties;
 	@Unique private StackingBehaviour data_stackingBehaviour;
 	@Unique private String data_translationKey;
-	@Unique protected double data_fallbackValue, data_minValue, data_maxValue;
+	@Unique protected double data_fallbackValue, data_minValue, data_maxValue, data_incrementValue;
 	
 	@Final
 	@Shadow
@@ -42,7 +41,7 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	private String translationKey;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void init(String translationKey, double fallback, CallbackInfo info) {
+	private void data_init(String translationKey, double fallback, CallbackInfo info) {
 		this.data_translationKey = translationKey;
 		this.data_fallbackValue = fallback;
 		this.data_minValue = Integer.MIN_VALUE;
@@ -54,23 +53,70 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Inject(method = "getDefaultValue", at = @At("HEAD"), cancellable = true)
-	private void onGetDefaultValue(CallbackInfoReturnable<Double> info) {
+	private void data_getDefaultValue(CallbackInfoReturnable<Double> info) {
 		info.setReturnValue(this.data_fallbackValue);
 	}
 	
 	@Inject(method = "isTracked", at = @At("HEAD"), cancellable = true)
-	private void onIsTracked(CallbackInfoReturnable<Boolean> info) {
+	private void data_isTracked(CallbackInfoReturnable<Boolean> info) {
 		info.setReturnValue(true);
 	}
 	
 	@Inject(method = "clamp", at = @At("HEAD"), cancellable = true)
-	private void onClamp(double value, CallbackInfoReturnable<Double> info) {
-		info.setReturnValue(this.data_clamp(value));
+	private void data_clamp(double value, CallbackInfoReturnable<Double> info) {
+		info.setReturnValue(this.data_clamped(value));
 	}
 	
 	@Inject(method = "getTranslationKey", at = @At("HEAD"), cancellable = true)
-	private void onGetTranslationKey(CallbackInfoReturnable<String> info) {
+	private void data_getTranslationKey(CallbackInfoReturnable<String> info) {
 		info.setReturnValue(this.data_translationKey);
+	}
+	
+	protected double data_clamped(double valueIn) {
+		double value = EntityAttributeModifiedEvents.CLAMPED.invoker().onClamped((EntityAttribute)(Object)this, valueIn);
+		return MathHelper.clamp(value, this.minValue(), this.maxValue());
+	}
+	
+	@Override
+	public void override(String translationKey, double minValue, double maxValue, double fallbackValue, double incrementValue, StackingBehaviour stackingBehaviour) {
+		this.data_translationKey = translationKey;
+		this.data_minValue = minValue;
+		this.data_maxValue = maxValue;
+		this.data_incrementValue = incrementValue;
+		this.data_fallbackValue = fallbackValue;
+		this.data_stackingBehaviour = stackingBehaviour;
+	}
+	
+	@Override
+	public void properties(Map<String, String> properties) {
+		if(properties == null) return;
+		this.data_properties = properties;
+	}
+	
+	@Override
+	public void addParent(MutableEntityAttribute attributeIn, double multiplier) {
+		this.data_parents.put(attributeIn, multiplier);
+	}
+	
+	@Override
+	public void addChild(MutableEntityAttribute attributeIn, double multiplier) {
+		if(this.contains(this, attributeIn)) return;
+		
+		attributeIn.addParent(this, multiplier);
+		this.data_children.put(attributeIn, multiplier);
+	}
+	
+	@Override
+	public void clear() {
+		this.override(this.translationKey, this.fallback, this.fallback, this.fallback, 0.0D, StackingBehaviour.FLAT);
+		this.properties(new HashMap<String, String>());
+		this.data_parents.clear();
+		this.data_children.clear();
+	}
+	
+	@Override
+	public double sum(final double k, final double v) {
+		return this.data_stackingBehaviour.result(k, v, this.data_incrementValue);
 	}
 	
 	@Override
@@ -87,39 +133,13 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public void addParent(MutableEntityAttribute attributeIn, double multiplier) {
-		this.data_parents.put(attributeIn, multiplier);
+	public Map<IEntityAttribute, Double> parentsMutable() {
+		return this.data_parents;
 	}
 	
 	@Override
-	public void addChild(MutableEntityAttribute attributeIn, final double multiplier) {
-		if(this.contains(this, attributeIn)) return;
-		
-		attributeIn.addParent(this, multiplier);
-		this.data_children.put(attributeIn, multiplier);
-	}
-	
-	@Override
-	public void transferAttribute(String translationKey, double minValue, double maxValue, double defaultValue, StackingBehaviour stackingBehaviour) {
-		this.data_translationKey = translationKey;
-		this.data_minValue = minValue;
-		this.data_maxValue = maxValue;
-		this.data_fallbackValue = defaultValue;
-		this.data_stackingBehaviour = stackingBehaviour;
-	}
-	
-	@Override
-	public void transferProperties(Map<String, String> properties) {
-		if(properties == null) return;
-		this.data_properties = properties;
-	}
-	
-	@Override
-	public void clear() {
-		this.transferAttribute(this.translationKey, this.fallback, this.fallback, this.fallback, StackingBehaviour.FLAT);
-		this.transferProperties(new HashMap<String, String>());
-		this.data_parents.clear();
-		this.data_children.clear();
+	public Map<IEntityAttribute, Double> childrenMutable() {
+		return this.data_children;
 	}
 	
 	@Override
@@ -133,32 +153,8 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public double stack(final double current, final double input) {
-		return this.data_stackingBehaviour.result(current, input);
-	}
-	
-	@Override
-	public double sumStack(double positives, double negatives) {
-		if(this.data_stackingBehaviour == StackingBehaviour.DIMINISHING) {
-			return negatives - positives;
-		} else {
-			return positives - negatives;
-		}
-	}
-	
-	@Override
 	public StackingBehaviour stackingBehaviour() {
 		return this.data_stackingBehaviour;
-	}
-	
-	@Override
-	public Map<IEntityAttribute, Double> parentsMutable() {
-		return this.data_parents;
-	}
-	
-	@Override
-	public Map<IEntityAttribute, Double> childrenMutable() {
-		return this.data_children;
 	}
 	
 	@Override
@@ -184,13 +180,5 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	@Override
 	public String getProperty(final String property) {
 		return this.data_properties.getOrDefault(property, "");
-	}
-	
-	protected double data_clamp(double value) {
-		final MutableDouble mutable = new MutableDouble(value);
-		
-		EntityAttributeModifiedEvents.CLAMPED.invoker().onClamped((EntityAttribute)(Object)this, mutable);
-		
-		return MathHelper.clamp(mutable.getValue(), this.minValue(), this.maxValue());
 	}
 }

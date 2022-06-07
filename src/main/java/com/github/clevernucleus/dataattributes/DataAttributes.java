@@ -1,16 +1,17 @@
 package com.github.clevernucleus.dataattributes;
 
+import java.util.Arrays;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.github.clevernucleus.dataattributes.api.DataAttributesAPI;
 import com.github.clevernucleus.dataattributes.api.event.EntityAttributeModifiedEvents;
-import com.github.clevernucleus.dataattributes.api.event.ServerSyncedEvent;
-import com.github.clevernucleus.dataattributes.impl.AttributeDataManager;
-import com.github.clevernucleus.dataattributes.impl.AttributeWrapper;
-import com.github.clevernucleus.dataattributes.impl.EntityTypeAttributes;
+import com.github.clevernucleus.dataattributes.api.util.Maths;
+import com.github.clevernucleus.dataattributes.impl.AttributeManager;
+import com.github.clevernucleus.dataattributes.impl.OfflinePlayerCacheCommands;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
@@ -23,7 +24,6 @@ import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
@@ -32,49 +32,36 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 
 public class DataAttributes implements ModInitializer {
-	public static final String VERSION = FabricLoader.getInstance().getModContainer(DataAttributesAPI.MODID).get().getMetadata().getVersion().getFriendlyString();
 	public static final Identifier HANDSHAKE = new Identifier(DataAttributesAPI.MODID, "handshake");
-	public static final AttributeDataManager MANAGER = new AttributeDataManager();
+	public static final Identifier RELOAD = new Identifier(DataAttributesAPI.MODID, "reload");
+	public static final AttributeManager MANAGER = new AttributeManager();
+	protected static String version = "";
+	protected static byte[] majorVersion;
 	
 	private static void loginQueryStart(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
 		PacketByteBuf buf = PacketByteBufs.create();
 		NbtCompound tag = new NbtCompound();
-		NbtList attributes = new NbtList();
-		NbtList entityTypes = new NbtList();
-		
-		for(Identifier identifier : DataAttributes.MANAGER.attributes.keySet()) {
-			AttributeWrapper attribute = DataAttributes.MANAGER.attributes.get(identifier);
-			NbtCompound entry = new NbtCompound();
-			attribute.writeToNbt(entry);
-			entry.putString("Identifier", identifier.toString());
-			attributes.add(entry);
-		}
-		
-		for(Identifier identifier : DataAttributes.MANAGER.entityTypes.keySet()) {
-			EntityTypeAttributes entityType = DataAttributes.MANAGER.entityTypes.get(identifier);
-			NbtCompound entry = new NbtCompound();
-			entityType.writeToNbt(entry);
-			entry.putString("Identifier", identifier.toString());
-			entityTypes.add(entry);
-		}
-		
-		tag.put("Attributes", attributes);
-		tag.put("EntityTypes", entityTypes);
+		DataAttributes.MANAGER.toNbt(tag);
 		buf.writeNbt(tag);
 		sender.sendPacket(HANDSHAKE, buf);
 	}
 	
 	private static void loginQueryResponse(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, LoginSynchronizer synchronizer, PacketSender responseSender) {
 		if(understood) {
-			String version = buf.readString();
+			byte[] version = buf.readByteArray();
 			
-			if(!version.equals(VERSION)) {
-				handler.disconnect(new LiteralText("Disconnected: client has Data Attributes " + version + ", but the server requires Data Attributes " + VERSION + "."));
-			} else {
-				server.execute(() -> ServerSyncedEvent.EVENT.invoker().onCompleted(server));
+			if(version[0] != DataAttributes.majorVersion[0] || version[1] != DataAttributes.majorVersion[1]) {
+				StringBuilder errorVersion = new StringBuilder();
+				
+				for(byte i : version) {
+					errorVersion.append(i);
+					errorVersion.append(".");
+				}
+				
+				handler.disconnect(new LiteralText("Disconnected: version mismatch. Client has version " + errorVersion.toString() + " Server has version " + version + "."));
 			}
 		} else {
-			handler.disconnect(new LiteralText("Disconnected: server requires client to have Data Attributes version " + VERSION + "."));
+			handler.disconnect(new LiteralText("Disconnected: network communication issue."));
 		}
 	}
 	
@@ -91,10 +78,18 @@ public class DataAttributes implements ModInitializer {
 	
 	@Override
 	public void onInitialize() {
+		version = FabricLoader.getInstance().getModContainer(DataAttributesAPI.MODID).get().getMetadata().getVersion().getFriendlyString();
+		String[] versionArray = Arrays.copyOf(version.split("\\."), 3);
+		majorVersion = new byte[Math.max(versionArray.length, 3)];
+		
+		for(int i = 0; i < majorVersion.length; i++) {
+			majorVersion[i] = (byte)Maths.parseInt(versionArray[i]);
+		}
+		
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(MANAGER);
-		ServerLifecycleEvents.SERVER_STARTING.register(server -> MANAGER.refresh());
 		ServerLoginConnectionEvents.QUERY_START.register(DataAttributes::loginQueryStart);
 		ServerLoginNetworking.registerGlobalReceiver(HANDSHAKE, DataAttributes::loginQueryResponse);
+		CommandRegistrationCallback.EVENT.register(OfflinePlayerCacheCommands::register);
 		EntityAttributeModifiedEvents.MODIFIED.register(DataAttributes::healthModified);
 	}
 }

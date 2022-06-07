@@ -11,7 +11,6 @@ import java.util.Map;
  *
  */
 public interface IEntityAttribute {
-	
 	/**
 	 * @return The attribute's minimum value;
 	 */
