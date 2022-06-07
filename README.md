@@ -11,9 +11,9 @@ As I develop and release more mods, it becomes challenging to provide support fo
 - Will you make a Forge version?
   - No, it will not be developed using Forge; however, the license allows you to do so yourself. 
 - I think that I've found a bug/crash, where can I report it?
-  - Please make an entry to the Issue Tracker [here](https://github.com/CleverNucleus/DataAttributes/issues).
+  - Please make an entry to the Issue Tracker [here](https://github.com/CleverNucleus/Data-Attributes/issues).
 - I have a feature suggestion/request, where can I ask about it?
   - Please make a pull request if you are a developer; or, if you cannot code, you may make a suggestion using the Issue Tracker linked above.
 
 ### Wiki
-For documentation, please see the [wiki](https://github.com/CleverNucleus/DataAttributes/wiki).
+For documentation, please see the [wiki](https://github.com/CleverNucleus/Data-Attributes/wiki).
