@@ -1,4 +1,4 @@
-# DataAttributes
+# Data Attributes
 
 ### What is Data Attributes?
 Data Attributes is a Minecraft mod, initially released for Minecraft 1.17.1 using the Fabric ecosystem. The mod does two things: overhauls Minecraft's entity attribute system to be more dynamic and to include follow on attributes (something found in many other games); and exposes entity attributes to a datapack system - allowing servers/pack makers to customise every aspect of the entity attribute system.
