@@ -8,10 +8,8 @@ import com.github.clevernucleus.dataattributes.api.DataAttributesAPI;
 import com.github.clevernucleus.dataattributes.api.event.EntityAttributeModifiedEvents;
 import com.github.clevernucleus.dataattributes.api.util.Maths;
 import com.github.clevernucleus.dataattributes.impl.AttributeManager;
-import com.github.clevernucleus.dataattributes.impl.OfflinePlayerCacheCommands;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
@@ -49,17 +47,10 @@ public class DataAttributes implements ModInitializer {
 	
 	private static void loginQueryResponse(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, LoginSynchronizer synchronizer, PacketSender responseSender) {
 		if(understood) {
-			byte[] version = buf.readByteArray();
+			byte[] verClient = buf.readByteArray();
 			
-			if(version[0] != DataAttributes.semVer[0] || version[1] != DataAttributes.semVer[1]) {
-				StringBuilder errorVersion = new StringBuilder();
-				
-				for(byte i : version) {
-					errorVersion.append(i);
-					errorVersion.append(".");
-				}
-				
-				handler.disconnect(new LiteralText("Disconnected: version mismatch. Client has version " + errorVersion.toString() + " Server has version " + version + "."));
+			if(verClient[0] != DataAttributes.semVer[0] || verClient[1] != DataAttributes.semVer[1]) {
+				handler.disconnect(new LiteralText("Disconnected: version mismatch. Client has version " + verClient + ". Server has version " + DataAttributes.version + "."));
 			}
 		} else {
 			handler.disconnect(new LiteralText("Disconnected: network communication issue."));
@@ -90,7 +81,6 @@ public class DataAttributes implements ModInitializer {
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(MANAGER);
 		ServerLoginConnectionEvents.QUERY_START.register(DataAttributes::loginQueryStart);
 		ServerLoginNetworking.registerGlobalReceiver(HANDSHAKE, DataAttributes::loginQueryResponse);
-		CommandRegistrationCallback.EVENT.register(OfflinePlayerCacheCommands::register);
 		EntityAttributeModifiedEvents.MODIFIED.register(DataAttributes::healthModified);
 	}
 }

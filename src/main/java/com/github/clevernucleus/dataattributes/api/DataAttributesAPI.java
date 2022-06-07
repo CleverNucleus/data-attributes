@@ -1,12 +1,7 @@
 package com.github.clevernucleus.dataattributes.api;
 
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.github.clevernucleus.dataattributes.api.util.CacheableValue;
-import com.github.clevernucleus.dataattributes.api.util.OfflinePlayerCache;
-import com.github.clevernucleus.dataattributes.impl.OfflinePlayerCacheImpl;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.AttributeContainer;
@@ -57,25 +52,5 @@ public final class DataAttributesAPI {
 		}
 		
 		return fallback;
-	}
-	
-	/**
-	 * Registers a cacheable value to the server: these are keys that instruct the server to cache some data from players when they disconnect.
-	 * @param <V>
-	 * @param key
-	 * @return
-	 */
-	public static <V> CacheableValue<V> registerCacheableValue(final CacheableValue<V> key) {
-		return com.github.clevernucleus.dataattributes.impl.OfflinePlayerCacheImpl.register(key);
-	}
-	
-	/**
-	 * Get access to the offline player cache object. This should only be used on the logical server.
-	 * @param server
-	 * @return
-	 */
-	public static Optional<OfflinePlayerCache> getOfflinePlayerCache(final net.minecraft.server.MinecraftServer server) {
-		OfflinePlayerCacheImpl.Provider offlinePlayerCache = new OfflinePlayerCacheImpl.Provider(server);
-		return offlinePlayerCache.isEmpty() ? Optional.empty() : Optional.of(offlinePlayerCache);
 	}
 }
