@@ -75,7 +75,7 @@ public class DataAttributes implements ModInitializer {
 		semVer = new byte[Math.max(versionArray.length, VER_SIZE)];
 		
 		for(int i = 0; i < semVer.length; i++) {
-			semVer[i] = (byte)Maths.parseInt(versionArray[i]);
+			semVer[i] = (byte)Maths.parse(versionArray[i]);
 		}
 		
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(MANAGER);

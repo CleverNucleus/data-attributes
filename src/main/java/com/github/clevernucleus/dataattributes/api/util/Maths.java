@@ -23,19 +23,32 @@ public final class Maths {
 	}
 	
 	/**
-	 * Safe string to int.
+	 * Safe string to float.
 	 * @param stringIn
 	 * @return
 	 */
-	public static int parseInt(final String stringIn) {
-		int value;
+	public static float parse(final String stringIn) {
+		float value;
 		
 		try {
-			value = Integer.parseInt(stringIn);
+			value = Float.parseFloat(stringIn);
 		} catch(NumberFormatException e) {
-			value = 0;
+			value = 0F;
 		}
 		
 		return value;
+	}
+	
+	/**
+	 * A staircase function.
+	 * @param x
+	 * @param stretch
+	 * @param steepness
+	 * @param xOffset
+	 * @param yOffset
+	 * @return y
+	 */
+	public static double stairs(final double x, final double stretch, final double steepness, final double xOffset, final double yOffset) {
+		return steepness * stretch * (x - xOffset) - steepness * Math.sin(stretch * (x - xOffset)) + yOffset;
 	}
 }
