@@ -57,7 +57,12 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 			EntityAttributeInstance entityAttributeInstance = this.data_custom.computeIfAbsent(identifier, id -> this.fallback.createOverride(this::updateTrackedStatus, Registry.ATTRIBUTE.get(id)));
 			
 			if(entityAttributeInstance != null) {
-				((MutableAttributeInstance)entityAttributeInstance).setContainerCallback((AttributeContainer)(Object)this);
+				MutableAttributeInstance mutable = (MutableAttributeInstance)entityAttributeInstance;
+				mutable.setContainerCallback((AttributeContainer)(Object)this);
+				
+				if(mutable.getId() == null) {
+					mutable.updateId(identifier);
+				}
 			}
 			
 			info.setReturnValue(entityAttributeInstance);

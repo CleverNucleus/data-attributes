@@ -13,4 +13,6 @@ public interface MutableAttributeInstance {
 	void actionModifier(final VoidConsumer consumerIn, final EntityAttributeInstance instanceIn, final EntityAttributeModifier modifierIn, final boolean isWasAdded);
 	
 	void setContainerCallback(final AttributeContainer containerIn);
+	
+	void updateId(final Identifier identifierIn);
 }

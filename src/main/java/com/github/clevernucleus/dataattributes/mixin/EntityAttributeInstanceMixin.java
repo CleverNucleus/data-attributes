@@ -3,7 +3,6 @@ package com.github.clevernucleus.dataattributes.mixin;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -39,7 +38,7 @@ import net.minecraft.util.registry.Registry;
 abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance, IEntityAttributeInstance {
 	
 	@Unique
-	private Optional<AttributeContainer> data_containerCallback = Optional.empty();
+	private AttributeContainer data_containerCallback;
 	
 	@Unique
 	private Identifier data_identifier;
@@ -98,11 +97,11 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 			}
 		}
 		
-		if(this.data_containerCallback.isPresent()) {
+		if(this.data_containerCallback != null) {
 			Map<IEntityAttribute, Double> parents = ((MutableEntityAttribute)attribute).parentsMutable();
 			
 			for(IEntityAttribute parent : parents.keySet()) {
-				EntityAttributeInstance instance = this.data_containerCallback.get().getCustomInstance((EntityAttribute)parent);
+				EntityAttributeInstance instance = this.data_containerCallback.getCustomInstance((EntityAttribute)parent);
 				
 				if(instance == null) continue;
 				
@@ -177,40 +176,44 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 		EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(this.data_identifier);
 		MutableEntityAttribute parent = (MutableEntityAttribute)entityAttribute;
 		
-		this.data_containerCallback.ifPresent(container -> {
-			for(IEntityAttribute child : parent.childrenMutable().keySet()) {
-				EntityAttribute attribute = (EntityAttribute)child;
-				EntityAttributeInstance instance = container.getCustomInstance(attribute);
-				
-				if(instance != null) {
-					instance.getValue();
-				}
+		if(this.data_containerCallback == null) return;
+		for(IEntityAttribute child : parent.childrenMutable().keySet()) {
+			EntityAttribute attribute = (EntityAttribute)child;
+			EntityAttributeInstance instance = this.data_containerCallback.getCustomInstance(attribute);
+			
+			if(instance != null) {
+				instance.getValue();
 			}
+		}
+		
+		final double value = instanceIn.getValue();
+		
+		consumerIn.accept();
+		
+		this.onUpdate();
+		
+		LivingEntity livingEntity = ((MutableAttributeContainer)this.data_containerCallback).getLivingEntity();
+		
+		EntityAttributeModifiedEvents.MODIFIED.invoker().onModified(entityAttribute, livingEntity, modifierIn, value, isWasAdded);
+		
+		for(IEntityAttribute child : parent.childrenMutable().keySet()) {
+			EntityAttribute attribute = (EntityAttribute)child;
+			EntityAttributeInstance instance = this.data_containerCallback.getCustomInstance(attribute);
 			
-			final double value = instanceIn.getValue();
-			
-			consumerIn.accept();
-			
-			this.onUpdate();
-			
-			LivingEntity livingEntity = ((MutableAttributeContainer)container).getLivingEntity();
-			
-			EntityAttributeModifiedEvents.MODIFIED.invoker().onModified(entityAttribute, livingEntity, modifierIn, value, isWasAdded);
-			
-			for(IEntityAttribute child : parent.childrenMutable().keySet()) {
-				EntityAttribute attribute = (EntityAttribute)child;
-				EntityAttributeInstance instance = container.getCustomInstance(attribute);
-				
-				if(instance != null) {
-					((MutableAttributeInstance)instance).actionModifier(() -> {}, instance, modifierIn, isWasAdded);
-				}
+			if(instance != null) {
+				((MutableAttributeInstance)instance).actionModifier(() -> {}, instance, modifierIn, isWasAdded);
 			}
-		});
+		}
 	}
 	
 	@Override
 	public void setContainerCallback(final AttributeContainer containerIn) {
-		this.data_containerCallback = Optional.ofNullable(containerIn);
+		this.data_containerCallback = containerIn;
+	}
+	
+	@Override
+	public void updateId(final Identifier identifierIn) {
+		this.data_identifier = identifierIn;
 	}
 	
 	@Override

@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.github.clevernucleus.dataattributes.mutable.MutableAttributeInstance;
 import com.github.clevernucleus.dataattributes.mutable.MutableDefaultAttributeContainer;
 
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -53,7 +54,16 @@ abstract class DefaultAttributeContainerMixin implements MutableDefaultAttribute
 	@Redirect(method = "require", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
 	private Object data_require(Map<?, ?> instances, Object attribute) {
 		Identifier identifier = Registry.ATTRIBUTE.getId((EntityAttribute)attribute);
-		return this.data_instances.get(identifier);
+		EntityAttributeInstance instance = this.data_instances.get(identifier);
+		
+		if(instance == null) return instance;
+		MutableAttributeInstance mutable = (MutableAttributeInstance)instance;
+		
+		if(mutable.getId() == null) {
+			mutable.updateId(identifier);
+		}
+		
+		return instance;
 	}
 	
 	@Redirect(method = "createOverride", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
