@@ -45,6 +45,10 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 	
 	@Final
 	@Shadow
+	private EntityAttribute type;
+	
+	@Final
+	@Shadow
 	private Map<UUID, EntityAttributeModifier> idToModifiers;
 	
 	@Final
@@ -73,12 +77,14 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 		
 		if(attribute != null) {
 			info.setReturnValue(attribute);
+		} else {
+			info.setReturnValue(this.type);
 		}
 	}
 	
 	@Inject(method = "computeValue", at = @At("HEAD"), cancellable = true)
 	private void data_computeValue(CallbackInfoReturnable<Double> info) {
-		MutableEntityAttribute attribute = (MutableEntityAttribute)Registry.ATTRIBUTE.get(this.data_identifier);
+		MutableEntityAttribute attribute = (MutableEntityAttribute)((EntityAttributeInstance)(Object)this).getAttribute();
 		double k = 0.0D, v = 0.0D;
 		
 		if(this.baseValue > 0.0D) {
@@ -148,6 +154,7 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 		
 		info.cancel();
 	}
+	
 	@Inject(method = "removeModifier", at = @At("HEAD"), cancellable = true)
 	private void data_removeModifier(EntityAttributeModifier modifier, CallbackInfo info) {
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
@@ -163,6 +170,7 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 	
 	@Redirect(method = "toNbt", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/registry/Registry;getId(Ljava/lang/Object;)Lnet/minecraft/util/Identifier;"))
 	private Identifier data_toNbt(Registry<?> registry, Object type) {
+		if(this.data_identifier == null) return Registry.ATTRIBUTE.getId((EntityAttribute)type);
 		return this.data_identifier;
 	}
 	
@@ -173,7 +181,7 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 	
 	@Override
 	public void actionModifier(final VoidConsumer consumerIn, final EntityAttributeInstance instanceIn, final EntityAttributeModifier modifierIn, final boolean isWasAdded) {
-		EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(this.data_identifier);
+		EntityAttribute entityAttribute = ((EntityAttributeInstance)(Object)this).getAttribute();
 		MutableEntityAttribute parent = (MutableEntityAttribute)entityAttribute;
 		
 		if(this.data_containerCallback == null) return;

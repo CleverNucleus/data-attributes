@@ -32,7 +32,7 @@ public final class Maths {
 		
 		try {
 			value = Float.parseFloat(stringIn);
-		} catch(NumberFormatException e) {
+		} catch(NumberFormatException | NullPointerException e) {
 			value = 0F;
 		}
 		
