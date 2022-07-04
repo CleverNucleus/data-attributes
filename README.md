@@ -53,9 +53,9 @@ Note that Data Attributes depends on [Fabric API](https://github.com/FabricMC/fa
 ### F.A.Q
 
 - Will you make a Forge version?
- - No, but the license allows you to do so yourself.
+  - No, but the license allows you to do so yourself.
 - I think that I've found a bug/crash, where can I report it?
- - Please make an entry to the [Issue Tracker](https://github.com/CleverNucleus/Data-Attributes/issues).
+  - Please make an entry to the [Issue Tracker](https://github.com/CleverNucleus/Data-Attributes/issues).
 
 Please also note that the mod AttributeFix is incompatible with Data Attributes - they have the same capabilities!
 
