@@ -121,13 +121,11 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 		
 		((MutableAttributeContainer)other).custom().values().forEach(attributeInstance -> {
 			EntityAttribute entityAttribute = attributeInstance.getAttribute();
-			final double value = attributeInstance.getValue();
-			
 			EntityAttributeInstance entityAttributeInstance = container.getCustomInstance(entityAttribute);
 			
 			if(entityAttributeInstance != null) {
 				entityAttributeInstance.setFrom(attributeInstance);
-				
+				final double value = entityAttributeInstance.getValue();
 				EntityAttributeModifiedEvents.MODIFIED.invoker().onModified(entityAttribute, this.data_livingEntity, null, value, false);
 			}
 		});
