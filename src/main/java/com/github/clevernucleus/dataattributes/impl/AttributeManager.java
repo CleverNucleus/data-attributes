@@ -2,10 +2,7 @@ package com.github.clevernucleus.dataattributes.impl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,8 +10,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.github.clevernucleus.dataattributes.api.DataAttributesAPI;
 import com.github.clevernucleus.dataattributes.api.event.AttributesReloadedEvent;
@@ -26,6 +22,7 @@ import com.github.clevernucleus.dataattributes.mutable.MutableEntityAttribute;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.logging.LogUtils;
 
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.entity.EntityType;
@@ -44,7 +41,7 @@ import net.minecraft.util.registry.Registry;
 public final class AttributeManager implements SimpleResourceReloadListener<AttributeManager.Wrapper> {
 	private static final Gson GSON = (new GsonBuilder()).excludeFieldsWithoutExposeAnnotation().create();
 	private static final int PATH_SUFFIX_LENGTH = ".json".length();
-	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Logger LOGGER = LogUtils.getLogger();
 	private static final String DIRECTORY = "attributes";
 	private static final Identifier ID = new Identifier(DataAttributesAPI.MODID, DIRECTORY);
 	
@@ -91,25 +88,30 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		String location = DIRECTORY + "/overrides";
 		int length = location.length() + 1;
 		
-		for(Identifier resource : manager.findResources(location, file -> file.endsWith(".json"))) {
+		for(Map.Entry<Identifier, Resource> entry : manager.findResources(location, id -> id.getPath().endsWith(".json")).entrySet()) {
+			Identifier resource = entry.getKey();
 			String path = resource.getPath();
 			Identifier identifier = new Identifier(resource.getNamespace(), path.substring(length, path.length() - PATH_SUFFIX_LENGTH));
 			
-			try (
-				Resource resourceStream = manager.getResource(resource);
-				InputStream inputStream = resourceStream.getInputStream();
-				Reader readerStream = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-			) {
-				AttributeOverrideJson json = JsonHelper.deserialize(GSON, readerStream, AttributeOverrideJson.class);
+			try {
+				BufferedReader reader = entry.getValue().getReader();
 				
-				if(json != null) {
-					AttributeOverrideJson object = cache.put(identifier, json);
+				try {
+					AttributeOverrideJson json = JsonHelper.deserialize(GSON, (Reader)reader, AttributeOverrideJson.class);
 					
-					if(object != null) throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
-				} else {
-					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", identifier, resource);
+					if(json != null) {
+						AttributeOverrideJson object = cache.put(identifier, json);
+						
+						if(object == null) continue;
+						throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
+					}
+					
+					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", (Object)identifier, (Object)resource);
+				} finally {
+					if(reader == null) continue;
+					((Reader)reader).close();
 				}
-			} catch(IOException exception) {
+			} catch(IOException | IllegalArgumentException exception) {
 				LOGGER.error("Couldn't parse data file {} from {}", identifier, resource, exception);
 			}
 		}
@@ -121,27 +123,30 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		Map<Identifier, FunctionsJson> cache = new HashMap<Identifier, FunctionsJson>();
 		int length = DIRECTORY.length() + 1;
 		
-		for(Identifier resource : manager.findResources(DIRECTORY, file -> file.endsWith("functions.json"))) {
+		for(Map.Entry<Identifier, Resource> entry : manager.findResources(DIRECTORY, id -> id.getPath().endsWith("functions.json")).entrySet()) {
+			Identifier resource = entry.getKey();
 			String path = resource.getPath();
 			Identifier identifier = new Identifier(resource.getNamespace(), path.substring(length, path.length() - PATH_SUFFIX_LENGTH));
 			
-			try (
-				Resource resourceStream = manager.getResource(resource);
-				InputStream inputStream = resourceStream.getInputStream();
-				Reader readerStream = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-			) {
-				FunctionsJson json = JsonHelper.deserialize(GSON, readerStream, FunctionsJson.class);
+			try {
+				BufferedReader reader = entry.getValue().getReader();
 				
-				if(json != null) {
-					FunctionsJson object = cache.put(identifier, json);
+				try {
+					FunctionsJson json = JsonHelper.deserialize(GSON, (Reader)reader, FunctionsJson.class);
 					
-					if(object != null) throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
-				} else {
-					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", identifier, resource);
+					if(json != null) {
+						FunctionsJson object = cache.put(identifier, json);
+						
+						if(object == null) continue;
+						throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
+					}
+					
+					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", (Object)identifier, (Object)resource);
+				} finally {
+					if(reader == null) continue;
+					((Reader)reader).close();
 				}
-				
-				resourceStream.close();
-			} catch(IOException exception) {
+			} catch(IOException | IllegalArgumentException exception) {
 				LOGGER.error("Couldn't parse data file {} from {}", identifier, resource, exception);
 			}
 		}
@@ -161,27 +166,30 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		Map<Identifier, PropertiesJson> cache = new HashMap<Identifier, PropertiesJson>();
 		int length = DIRECTORY.length() + 1;
 		
-		for(Identifier resource : manager.findResources(DIRECTORY, file -> file.endsWith("properties.json"))) {
+		for(Map.Entry<Identifier, Resource> entry : manager.findResources(DIRECTORY, id -> id.getPath().endsWith("properties.json")).entrySet()) {
+			Identifier resource = entry.getKey();
 			String path = resource.getPath();
 			Identifier identifier = new Identifier(resource.getNamespace(), path.substring(length, path.length() - PATH_SUFFIX_LENGTH));
 			
-			try (
-				Resource resourceStream = manager.getResource(resource);
-				InputStream inputStream = resourceStream.getInputStream();
-				Reader readerStream = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-			) {
-				PropertiesJson json = JsonHelper.deserialize(GSON, readerStream, PropertiesJson.class);
+			try {
+				BufferedReader reader = entry.getValue().getReader();
 				
-				if(json != null) {
-					PropertiesJson object = cache.put(identifier, json);
+				try {
+					PropertiesJson json = JsonHelper.deserialize(GSON, (Reader)reader, PropertiesJson.class);
 					
-					if(object != null) throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
-				} else {
-					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", identifier, resource);
+					if(json != null) {
+						PropertiesJson object = cache.put(identifier, json);
+						
+						if(object == null) continue;
+						throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
+					}
+					
+					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", (Object)identifier, (Object)resource);
+				} finally {
+					if(reader == null) continue;
+					((Reader)reader).close();
 				}
-				
-				resourceStream.close();
-			} catch(IOException exception) {
+			} catch(IOException | IllegalArgumentException exception) {
 				LOGGER.error("Couldn't parse data file {} from {}", identifier, resource, exception);
 			}
 		}
@@ -201,23 +209,30 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		Map<Identifier, EntityTypesJson> cache = new HashMap<Identifier, EntityTypesJson>();
 		int length = DIRECTORY.length() + 1;
 		
-		for(Identifier resource : manager.findResources(DIRECTORY, file -> file.endsWith("entity_types.json"))) {
+		for(Map.Entry<Identifier, Resource> entry : manager.findResources(DIRECTORY, id -> id.getPath().endsWith("entity_types.json")).entrySet()) {
+			Identifier resource = entry.getKey();
 			String path = resource.getPath();
 			Identifier identifier = new Identifier(resource.getNamespace(), path.substring(length, path.length() - PATH_SUFFIX_LENGTH));
 			
-			try (
-				Resource resourceStream = manager.getResource(resource);
-				InputStream inputStream = resourceStream.getInputStream();
-				Reader readerStream = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-			) {
-				EntityTypesJson json = JsonHelper.deserialize(GSON, readerStream, EntityTypesJson.class);
+			try {
+				BufferedReader reader = entry.getValue().getReader();
 				
-				if(json != null) {
-					EntityTypesJson object = cache.put(identifier, json);
+				try {
+					EntityTypesJson json = JsonHelper.deserialize(GSON, (Reader)reader, EntityTypesJson.class);
 					
-					if(object != null) throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
+					if(json != null) {
+						EntityTypesJson object = cache.put(identifier, json);
+						
+						if(object == null) continue;
+						throw new IllegalStateException("Duplicate data file ignored with ID " + identifier);
+					}
+					
+					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", (Object)identifier, (Object)resource);
+				} finally {
+					if(reader == null) continue;
+					((Reader)reader).close();
 				}
-			} catch(IOException exception) {
+			} catch(IOException | IllegalArgumentException exception) {
 				LOGGER.error("Couldn't parse data file {} from {}", identifier, resource, exception);
 			}
 		}

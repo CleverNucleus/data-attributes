@@ -26,7 +26,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 public class DataAttributes implements ModInitializer {
@@ -50,10 +50,10 @@ public class DataAttributes implements ModInitializer {
 			byte[] verClient = buf.readByteArray();
 			
 			if(verClient[0] != DataAttributes.semVer[0] || verClient[1] != DataAttributes.semVer[1]) {
-				handler.disconnect(new LiteralText("Disconnected: version mismatch. Client has version " + verClient + ". Server has version " + DataAttributes.version + "."));
+				handler.disconnect(Text.literal("Disconnected: version mismatch. Client has version " + verClient + ". Server has version " + DataAttributes.version + "."));
 			}
 		} else {
-			handler.disconnect(new LiteralText("Disconnected: network communication issue."));
+			handler.disconnect(Text.literal("Disconnected: network communication issue."));
 		}
 	}
 	
