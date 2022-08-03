@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttribute;
 import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttributeInstance;
+import com.github.clevernucleus.dataattributes.api.attribute.StackingBehaviour;
 import com.github.clevernucleus.dataattributes.api.event.EntityAttributeModifiedEvents;
 import com.github.clevernucleus.dataattributes.api.util.VoidConsumer;
 import com.github.clevernucleus.dataattributes.mutable.MutableAttributeContainer;
@@ -85,21 +86,26 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 	@Inject(method = "computeValue", at = @At("HEAD"), cancellable = true)
 	private void data_computeValue(CallbackInfoReturnable<Double> info) {
 		MutableEntityAttribute attribute = (MutableEntityAttribute)((EntityAttributeInstance)(Object)this).getAttribute();
-		double k = 0.0D, v = 0.0D;
+		StackingBehaviour behaviour = attribute.stackingBehaviour();
+		double k = 0.0D, v = 0.0D, k2 = 0.0D, v2 = 0.0D;
 		
 		if(this.baseValue > 0.0D) {
-			k = attribute.stackingBehaviour().stack(k, this.baseValue);
+			k = behaviour.stack(k, this.baseValue);
+			k2 = behaviour.max(k2, this.baseValue);
 		} else {
-			v = attribute.stackingBehaviour().stack(v, this.baseValue);
+			v = behaviour.stack(v, this.baseValue);
+			v2 = behaviour.max(v2, this.baseValue);
 		}
 		
 		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.ADDITION)) {
 			double value = modifier.getValue();
 			
 			if(value > 0.0D) {
-				k = attribute.stackingBehaviour().stack(k, value);
+				k = behaviour.stack(k, value);
+				k2 = behaviour.max(k2, value);
 			} else {
-				v = attribute.stackingBehaviour().stack(v, value);
+				v = behaviour.stack(v, value);
+				v2 = behaviour.max(v2, value);
 			}
 		}
 		
@@ -115,14 +121,16 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 				double value = multiplier * instance.getValue();
 				
 				if(value > 0.0D) {
-					k = attribute.stackingBehaviour().stack(k, value);
+					k = behaviour.stack(k, value);
+					k2 = behaviour.max(k2, value);
 				} else {
-					v = attribute.stackingBehaviour().stack(v, value);
+					v = behaviour.stack(v, value);
+					v2 = behaviour.max(v2, value);
 				}
 			}
 		}
 		
-		double d = attribute.sum(k, v);
+		double d = attribute.sum(k, k2, v, v2);
 		double e = d;
 		
 		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.MULTIPLY_BASE)) {

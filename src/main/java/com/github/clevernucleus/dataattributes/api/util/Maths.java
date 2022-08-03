@@ -51,4 +51,16 @@ public final class Maths {
 	public static double stairs(final double x, final double stretch, final double steepness, final double xOffset, final double yOffset) {
 		return steepness * stretch * (x - xOffset) - steepness * Math.sin(stretch * (x - xOffset)) + yOffset;
 	}
+	
+	/**
+	 * @param value
+	 * @param min
+	 * @param max
+	 * @return Returns true if the value is less than max and greater than or equal to min.
+	 */
+	public static boolean isWithinLimits(final double value, final double min, final double max) {
+		if(value < min) return false;
+		if(value >= max) return false;
+		return true;
+	}
 }

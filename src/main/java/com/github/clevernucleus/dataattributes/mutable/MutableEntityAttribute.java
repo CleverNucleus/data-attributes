@@ -16,7 +16,7 @@ public interface MutableEntityAttribute extends IEntityAttribute {
 	
 	void clear();
 	
-	double sum(final double k, final double v);
+	double sum(final double k, final double k2, final double v, final double v2);
 	
 	boolean contains(MutableEntityAttribute a, MutableEntityAttribute b);
 	
