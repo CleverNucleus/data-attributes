@@ -115,8 +115,8 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public double sum(final double k, final double v) {
-		return this.data_stackingBehaviour.result(k, v, this.data_incrementValue);
+	public double sum(final double k, final double k2, final double v, final double v2) {
+		return this.data_stackingBehaviour.result(k, k2, v, v2, this.data_incrementValue);
 	}
 	
 	@Override
