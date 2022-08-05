@@ -122,10 +122,12 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 				
 				if(value > 0.0D) {
 					k = behaviour.stack(k, value);
-					k2 = behaviour.max(k2, value);
+					// We don't put this here because follow-on attribute values should always be diminishing (if the attribute supports it).
+					// k2 = behaviour.max(k2, value);
 				} else {
 					v = behaviour.stack(v, value);
-					v2 = behaviour.max(v2, value);
+					// We don't put this here because follow-on attribute values should always be diminishing (if the attribute supports it).
+					// v2 = behaviour.max(v2, value);
 				}
 			}
 		}
