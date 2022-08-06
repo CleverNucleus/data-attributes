@@ -41,7 +41,7 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	private String translationKey;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void data_init(String translationKey, double fallback, CallbackInfo info) {
+	private void data_init(String translationKey, double fallback, CallbackInfo ci) {
 		this.data_translationKey = translationKey;
 		this.data_fallbackValue = fallback;
 		this.data_minValue = Integer.MIN_VALUE;
@@ -53,23 +53,23 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Inject(method = "getDefaultValue", at = @At("HEAD"), cancellable = true)
-	private void data_getDefaultValue(CallbackInfoReturnable<Double> info) {
-		info.setReturnValue(this.data_fallbackValue);
+	private void data_getDefaultValue(CallbackInfoReturnable<Double> ci) {
+		ci.setReturnValue(this.data_fallbackValue);
 	}
 	
 	@Inject(method = "isTracked", at = @At("HEAD"), cancellable = true)
-	private void data_isTracked(CallbackInfoReturnable<Boolean> info) {
-		info.setReturnValue(true);
+	private void data_isTracked(CallbackInfoReturnable<Boolean> ci) {
+		ci.setReturnValue(true);
 	}
 	
 	@Inject(method = "clamp", at = @At("HEAD"), cancellable = true)
-	private void data_clamp(double value, CallbackInfoReturnable<Double> info) {
-		info.setReturnValue(this.data_clamped(value));
+	private void data_clamp(double value, CallbackInfoReturnable<Double> ci) {
+		ci.setReturnValue(this.data_clamped(value));
 	}
 	
 	@Inject(method = "getTranslationKey", at = @At("HEAD"), cancellable = true)
-	private void data_getTranslationKey(CallbackInfoReturnable<String> info) {
-		info.setReturnValue(this.data_translationKey);
+	private void data_getTranslationKey(CallbackInfoReturnable<String> ci) {
+		ci.setReturnValue(this.data_translationKey);
 	}
 	
 	protected double data_clamped(double valueIn) {

@@ -68,23 +68,23 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 	protected void onUpdate() {}
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void data_init(EntityAttribute type, Consumer<EntityAttributeInstance> updateCallback, CallbackInfo info) {
+	private void data_init(EntityAttribute type, Consumer<EntityAttributeInstance> updateCallback, CallbackInfo ci) {
 		this.data_identifier = Registry.ATTRIBUTE.getId(type);
 	}
 	
 	@Inject(method = "getAttribute", at = @At("HEAD"), cancellable = true)
-	private void data_getAttribute(CallbackInfoReturnable<EntityAttribute> info) {
+	private void data_getAttribute(CallbackInfoReturnable<EntityAttribute> ci) {
 		EntityAttribute attribute = Registry.ATTRIBUTE.get(this.data_identifier);
 		
 		if(attribute != null) {
-			info.setReturnValue(attribute);
+			ci.setReturnValue(attribute);
 		} else {
-			info.setReturnValue(this.type);
+			ci.setReturnValue(this.type);
 		}
 	}
 	
 	@Inject(method = "computeValue", at = @At("HEAD"), cancellable = true)
-	private void data_computeValue(CallbackInfoReturnable<Double> info) {
+	private void data_computeValue(CallbackInfoReturnable<Double> ci) {
 		MutableEntityAttribute attribute = (MutableEntityAttribute)((EntityAttributeInstance)(Object)this).getAttribute();
 		StackingBehaviour behaviour = attribute.stackingBehaviour();
 		double k = 0.0D, v = 0.0D, k2 = 0.0D, v2 = 0.0D;
@@ -144,11 +144,11 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 		}
 		
 		double value = ((EntityAttribute)attribute).clamp(e);
-		info.setReturnValue(value);
+		ci.setReturnValue(value);
 	}
 	
 	@Inject(method = "addModifier", at = @At("HEAD"), cancellable = true)
-	private void data_addModifier(EntityAttributeModifier modifier, CallbackInfo info) {
+	private void data_addModifier(EntityAttributeModifier modifier, CallbackInfo ci) {
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
 		UUID key = modifier.getId();
 		EntityAttributeModifier entityAttributeModifier = (EntityAttributeModifier)this.idToModifiers.get(key);
@@ -162,11 +162,11 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 			}, instance, modifier, true);
 		}
 		
-		info.cancel();
+		ci.cancel();
 	}
 	
 	@Inject(method = "removeModifier", at = @At("HEAD"), cancellable = true)
-	private void data_removeModifier(EntityAttributeModifier modifier, CallbackInfo info) {
+	private void data_removeModifier(EntityAttributeModifier modifier, CallbackInfo ci) {
 		EntityAttributeInstance instance = (EntityAttributeInstance)(Object)this;
 		
 		this.actionModifier(() -> {
@@ -175,7 +175,7 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 			this.persistentModifiers.remove(modifier);
 		}, instance, modifier, false);
 		
-		info.cancel();
+		ci.cancel();
 	}
 	
 	@Redirect(method = "toNbt", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/registry/Registry;getId(Ljava/lang/Object;)Lnet/minecraft/util/Identifier;"))

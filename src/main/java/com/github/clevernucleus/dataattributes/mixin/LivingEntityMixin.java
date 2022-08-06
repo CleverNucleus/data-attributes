@@ -28,7 +28,7 @@ abstract class LivingEntityMixin {
 	private int data_updateFlag;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void data_init(EntityType<? extends LivingEntity> entityType, World world, CallbackInfo info) {
+	private void data_init(EntityType<? extends LivingEntity> entityType, World world, CallbackInfo ci) {
 		this.attributes = new AttributeContainer(DataAttributes.MANAGER.getContainer(entityType));
 		this.data_updateFlag = ((MutableIntFlag)world.getLevelProperties()).getUpdateFlag();
 		LivingEntity livingEntity = (LivingEntity)(Object)this;
@@ -37,7 +37,7 @@ abstract class LivingEntityMixin {
 	}
 	
 	@Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tickActiveItemStack()V"))
-	private void data_tick(CallbackInfo info) {
+	private void data_tick(CallbackInfo ci) {
 		LivingEntity livingEntity = (LivingEntity)(Object)this;
 		final int updateFlag = ((MutableIntFlag)livingEntity.world.getLevelProperties()).getUpdateFlag();
 		

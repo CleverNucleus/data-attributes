@@ -18,12 +18,12 @@ abstract class GameJoinS2CPacketMixin implements MutableIntFlag {
 	private int updateFlag;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void data_init(PacketByteBuf buf, CallbackInfo info) {
+	private void data_init(PacketByteBuf buf, CallbackInfo ci) {
 		this.updateFlag = buf.readInt();
 	}
 	
 	@Inject(method = "write", at = @At("TAIL"))
-	private void data_write(PacketByteBuf buf, CallbackInfo info) {
+	private void data_write(PacketByteBuf buf, CallbackInfo ci) {
 		buf.writeInt(this.updateFlag);
 	}
 	

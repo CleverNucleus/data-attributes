@@ -14,39 +14,39 @@ public final class RandDistribution<T> {
 	
 	/**
 	 * Constructor.
-	 * @param par0 Default value that is returned in case something fails.
+	 * @param fallback Default value that is returned in case something fails.
 	 */
-	public RandDistribution(final T par0) {
+	public RandDistribution(final T fallback) {
 		this.distribution = new HashMap<>();
-		this.defualtValue = par0;
+		this.defualtValue = fallback;
 	}
 	
 	/**
 	 * Adds to the internal inventory of the distributor.
-	 * @param par0 Input object type.
-	 * @param par1 Input object type's weight.
+	 * @param object Input object type.
+	 * @param weight Input object type's weight.
 	 */
-	public void add(T par0, float par1) {
-		if(this.distribution.get(par0) != null) {
-			this.distSum -= this.distribution.get(par0);
+	public void add(T object, float weight) {
+		if(this.distribution.get(object) != null) {
+			this.distSum -= this.distribution.get(object);
 		}
 		
-		this.distribution.put(par0, par1);
-		this.distSum += par1;
+		this.distribution.put(object, weight);
+		this.distSum += weight;
 	}
 	
 	/**
 	 * @return A randomly distributed and weighted result.
 	 */
 	public T getDistributedRandom() {
-		float var0 = (float)Math.random();
-		float var1 = 1.0F / this.distSum;
-		float var2 = 0.0F;
+		float rand = (float)Math.random();
+		float dist = 1.0F / this.distSum;
+		float mean = 0.0F;
 		
-		for(T var : this.distribution.keySet()) {
-			var2 += this.distribution.get(var);
+		for(T object : this.distribution.keySet()) {
+			mean += this.distribution.get(object);
 			
-			if(var0 / var1 <= var2) return var;
+			if(rand / dist <= mean) return object;
 		}
 		
 		return this.defualtValue;

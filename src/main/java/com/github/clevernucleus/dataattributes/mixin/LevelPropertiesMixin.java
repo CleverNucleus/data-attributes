@@ -28,13 +28,13 @@ abstract class LevelPropertiesMixin implements MutableIntFlag {
 	private int data_updateFlag;
 	
 	@Inject(method = "updateProperties", at = @At("HEAD"))
-	private void data_updateProperties(DynamicRegistryManager registryManager, NbtCompound levelNbt, @Nullable NbtCompound playerNbt, CallbackInfo info) {
+	private void data_updateProperties(DynamicRegistryManager registryManager, NbtCompound levelNbt, @Nullable NbtCompound playerNbt, CallbackInfo ci) {
 		levelNbt.putInt("AttributeUpdateFlag", this.data_updateFlag);
 	}
 	
 	@Inject(method = "readProperties", at = @At("RETURN"))
-	private static void data_readProperties(Dynamic<NbtElement> dynamic2, DataFixer dataFixer, int dataVersion, @Nullable NbtCompound playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> info) {
-		LevelProperties levelProperties = info.getReturnValue();
+	private static void data_readProperties(Dynamic<NbtElement> dynamic2, DataFixer dataFixer, int dataVersion, @Nullable NbtCompound playerData, LevelInfo levelInfo, SaveVersionInfo saveVersionInfo, GeneratorOptions generatorOptions, Lifecycle lifecycle, CallbackInfoReturnable<LevelProperties> ci) {
+		LevelProperties levelProperties = ci.getReturnValue();
 		((MutableIntFlag)levelProperties).setUpdateFlag(dynamic2.get("AttributeUpdateFlag").asInt(0));
 	}
 	

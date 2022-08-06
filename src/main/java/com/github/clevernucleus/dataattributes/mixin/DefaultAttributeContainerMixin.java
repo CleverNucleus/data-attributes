@@ -32,7 +32,7 @@ abstract class DefaultAttributeContainerMixin implements MutableDefaultAttribute
 	private Map<EntityAttribute, EntityAttributeInstance> instances;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void data_init(Map<EntityAttribute, EntityAttributeInstance> instances, CallbackInfo info) {
+	private void data_init(Map<EntityAttribute, EntityAttributeInstance> instances, CallbackInfo ci) {
 		this.data_instances = new HashMap<Identifier, EntityAttributeInstance>();
 		
 		instances.forEach((attribute, instance) -> {
@@ -58,9 +58,9 @@ abstract class DefaultAttributeContainerMixin implements MutableDefaultAttribute
 	}
 	
 	@Inject(method = "has", at = @At("HEAD"), cancellable = true)
-	private void data_has(EntityAttribute type, CallbackInfoReturnable<Boolean> info) {
+	private void data_has(EntityAttribute type, CallbackInfoReturnable<Boolean> ci) {
 		Identifier identifier = Registry.ATTRIBUTE.getId(type);
-		info.setReturnValue(this.data_instances.containsKey(identifier) || this.instances.containsKey(type));
+		ci.setReturnValue(this.data_instances.containsKey(identifier) || this.instances.containsKey(type));
 	}
 	
 	@Redirect(method = "hasModifier", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))

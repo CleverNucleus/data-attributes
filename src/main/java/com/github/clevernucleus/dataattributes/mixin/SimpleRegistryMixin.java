@@ -71,15 +71,15 @@ abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 	private int nextId;
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private void data_init(CallbackInfo info) {
+	private void data_init(CallbackInfo ci) {
 		this.data_idCache = new HashSet<Identifier>();
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Inject(method = "assertNotFrozen", at = @At("HEAD"), cancellable = true)
-	private void data_assertNotFrozen(CallbackInfo info) {
+	private void data_assertNotFrozen(CallbackInfo ci) {
 		if((SimpleRegistry<T>)(Object)this == Registry.ATTRIBUTE) {
-			info.cancel();
+			ci.cancel();
 		}
 	}
 	

@@ -50,7 +50,7 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 	}
 	
 	@Inject(method = "getCustomInstance", at = @At("HEAD"), cancellable = true)
-	private void data_getCustomInstance(EntityAttribute attribute2, CallbackInfoReturnable<EntityAttributeInstance> info) {
+	private void data_getCustomInstance(EntityAttribute attribute2, CallbackInfoReturnable<EntityAttributeInstance> ci) {
 		Identifier identifier = Registry.ATTRIBUTE.getId(attribute2);
 		
 		if(identifier != null) {
@@ -65,9 +65,9 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 				}
 			}
 			
-			info.setReturnValue(entityAttributeInstance);
+			ci.setReturnValue(entityAttributeInstance);
 		} else {
-			info.setReturnValue((EntityAttributeInstance)null);
+			ci.setReturnValue((EntityAttributeInstance)null);
 		}
 	}
 	
@@ -102,7 +102,7 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 	}
 	
 	@Inject(method = "removeModifiers", at = @At("HEAD"), cancellable = true)
-	private void data_removeModifiers(Multimap<EntityAttribute, EntityAttributeModifier> attributeModifiers, CallbackInfo info) {
+	private void data_removeModifiers(Multimap<EntityAttribute, EntityAttributeModifier> attributeModifiers, CallbackInfo ci) {
 		attributeModifiers.asMap().forEach((attribute, collection) -> {
 			Identifier identifier = Registry.ATTRIBUTE.getId(attribute);
             EntityAttributeInstance entityAttributeInstance = this.data_custom.get(identifier);
@@ -112,11 +112,11 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
             }
         });
 		
-		info.cancel();
+		ci.cancel();
 	}
 	
 	@Inject(method = "setFrom", at = @At("HEAD"), cancellable = true)
-	private void data_setFrom(AttributeContainer other, CallbackInfo info) {
+	private void data_setFrom(AttributeContainer other, CallbackInfo ci) {
 		AttributeContainer container = (AttributeContainer)(Object)this;
 		
 		((MutableAttributeContainer)other).custom().values().forEach(attributeInstance -> {
@@ -130,7 +130,7 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 			}
 		});
 		
-		info.cancel();
+		ci.cancel();
 	}
 	
 	@Redirect(method = "toNbt", at = @At(value = "INVOKE", target = "Ljava/util/Map;values()Ljava/util/Collection;"))

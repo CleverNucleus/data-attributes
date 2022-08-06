@@ -25,7 +25,7 @@ import net.minecraft.world.level.ServerWorldProperties;
 abstract class ReloadCommandMixin {
 	
 	@Inject(method = "tryReloadDataPacks", at = @At("TAIL"))
-	private static void data_tryReloadDataPacks(Collection<String> dataPacks, ServerCommandSource source, CallbackInfo info) {
+	private static void data_tryReloadDataPacks(Collection<String> dataPacks, ServerCommandSource source, CallbackInfo ci) {
 		MinecraftServer server = source.getServer();
 		ServerWorldProperties serverWorldProperties = server.getSaveProperties().getMainWorldProperties();
 		

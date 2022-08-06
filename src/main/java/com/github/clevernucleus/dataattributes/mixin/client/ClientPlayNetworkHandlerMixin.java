@@ -20,7 +20,7 @@ abstract class ClientPlayNetworkHandlerMixin {
 	private ClientWorld world;
 	
 	@Inject(method = "onGameJoin", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;joinWorld(Lnet/minecraft/client/world/ClientWorld;)V", shift = At.Shift.AFTER))
-	private void data_onGameJoin(GameJoinS2CPacket packet, CallbackInfo info) {
+	private void data_onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
 		ClientWorld.Properties properties = this.world.getLevelProperties();
 		
 		if(properties instanceof MutableIntFlag) {
@@ -30,7 +30,7 @@ abstract class ClientPlayNetworkHandlerMixin {
 	}
 	
 	@Inject(method = "onPlayerRespawn", at = @At("TAIL"))
-	private void data_onPlayerRespawn(PlayerRespawnS2CPacket packet, CallbackInfo info) {
+	private void data_onPlayerRespawn(PlayerRespawnS2CPacket packet, CallbackInfo ci) {
 		ClientWorld.Properties properties = this.world.getLevelProperties();
 		
 		if(properties instanceof MutableIntFlag) {

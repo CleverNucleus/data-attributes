@@ -23,13 +23,13 @@ abstract class EntityAttributeModifierMixin implements MutableAttributeModifier 
 	private double data_value;
 	
 	@Inject(method = "<init>(Ljava/util/UUID;Ljava/util/function/Supplier;DLnet/minecraft/entity/attribute/EntityAttributeModifier$Operation;)V", at = @At("TAIL"))
-	private void init(UUID uuid, Supplier<String> nameGetter, double value, EntityAttributeModifier.Operation operation, CallbackInfo info) {
+	private void init(UUID uuid, Supplier<String> nameGetter, double value, EntityAttributeModifier.Operation operation, CallbackInfo ci) {
 		this.data_value = value;
 	}
 	
 	@Inject(method = "getValue", at = @At("HEAD"), cancellable = true)
-	private void onGetValue(CallbackInfoReturnable<Double> info) {
-		info.setReturnValue(this.data_value);
+	private void onGetValue(CallbackInfoReturnable<Double> ci) {
+		ci.setReturnValue(this.data_value);
 	}
 	
 	@Redirect(method = "toString", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/attribute/EntityAttributeModifier;value:D", opcode = Opcodes.GETFIELD))

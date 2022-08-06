@@ -42,11 +42,11 @@ public interface ItemHelper {
 	 * @return
 	 */
 	default float getToughness(final ItemStack itemStack) { return 0.0F; }
-
+	
 	/**
 	 * ItemStack dependent version of Item#getEquipSound. Default implementation returns aforementioned.
 	 * @param itemStack
 	 * @return
 	 */
-	SoundEvent getEquipSound(final ItemStack itemStack);
+	default SoundEvent getEquipSound(final ItemStack itemStack) { return null; }
 }

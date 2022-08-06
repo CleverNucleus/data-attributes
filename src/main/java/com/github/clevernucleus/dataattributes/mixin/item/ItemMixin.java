@@ -10,7 +10,7 @@ import net.minecraft.sound.SoundEvent;
 
 @Mixin(Item.class)
 abstract class ItemMixin implements ItemHelper {
-
+	
 	@Override
 	public SoundEvent getEquipSound(final ItemStack itemStack) {
 		return ((Item)(Object)this).getEquipSound();
