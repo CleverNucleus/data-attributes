@@ -8,8 +8,10 @@ import com.github.clevernucleus.dataattributes.api.DataAttributesAPI;
 import com.github.clevernucleus.dataattributes.api.event.EntityAttributeModifiedEvents;
 import com.github.clevernucleus.dataattributes.api.util.Maths;
 import com.github.clevernucleus.dataattributes.impl.AttributeManager;
+import com.github.clevernucleus.dataattributes.mutable.MutableAttributeContainer;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginConnectionEvents;
@@ -17,6 +19,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerLoginNetworking.LoginSynchronizer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -57,6 +60,11 @@ public class DataAttributes implements ModInitializer {
 		}
 	}
 	
+	private static void refreshAttributes(final Entity entity) {
+		if(!(entity instanceof LivingEntity)) return;
+		((MutableAttributeContainer)((LivingEntity)entity).getAttributes()).refresh();
+	}
+	
 	private static void healthModified(final EntityAttribute attribute, final @Nullable LivingEntity livingEntity, final EntityAttributeModifier modifier, final double prevValue, final boolean isWasAdded) {
 		if(livingEntity == null) return;
 		if(livingEntity.world.isClient) return;
@@ -81,6 +89,8 @@ public class DataAttributes implements ModInitializer {
 		ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(MANAGER);
 		ServerLoginConnectionEvents.QUERY_START.register(DataAttributes::loginQueryStart);
 		ServerLoginNetworking.registerGlobalReceiver(HANDSHAKE, DataAttributes::loginQueryResponse);
+		ServerEntityWorldChangeEvents.AFTER_ENTITY_CHANGE_WORLD.register((oldEntity, newEntity, from, to) -> refreshAttributes(newEntity));
+		ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, from, to) -> refreshAttributes(player));
 		EntityAttributeModifiedEvents.MODIFIED.register(DataAttributes::healthModified);
 	}
 }

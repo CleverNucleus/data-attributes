@@ -152,4 +152,11 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 	public void setLivingEntity(final LivingEntity livingEntity) {
 		this.data_livingEntity = livingEntity;
 	}
+	
+	@Override
+	public void refresh() {
+		for(EntityAttributeInstance instance : this.data_custom.values()) {
+			((MutableAttributeInstance)instance).refresh();
+		}
+	}
 }

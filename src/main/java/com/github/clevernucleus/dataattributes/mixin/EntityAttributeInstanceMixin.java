@@ -245,4 +245,9 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 			((MutableAttributeModifier)modifier).updateValue(value);
 		}, instance, modifier, false);
 	}
+	
+	@Override
+	public void refresh() {
+		this.onUpdate();
+	}
 }

@@ -15,4 +15,6 @@ public interface MutableAttributeInstance {
 	void setContainerCallback(final AttributeContainer containerIn);
 	
 	void updateId(final Identifier identifierIn);
+	
+	void refresh();
 }
