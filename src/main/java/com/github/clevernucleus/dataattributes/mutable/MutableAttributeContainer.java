@@ -8,6 +8,10 @@ import net.minecraft.util.Identifier;
 
 public interface MutableAttributeContainer {
 	Map<Identifier, EntityAttributeInstance> custom();
+	
 	LivingEntity getLivingEntity();
+	
 	void setLivingEntity(final LivingEntity livingEntity);
+	
+	void refresh();
 }
