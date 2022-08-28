@@ -1,4 +1,4 @@
-import com.modrinth.minotaur.dependencies.ModDependency
+import com.modrinth.minotaur.dependencies.VersionDependency
 
 plugins {
 	id 'fabric-loom' version '0.12-SNAPSHOT'
@@ -68,5 +68,5 @@ modrinth {
     uploadFile = remapJar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["fabric"]
-    dependencies = [new ModDependency("P7dR8mSH", "required")]
+    dependencies = [new VersionDependency("3KmOcp6b", "required")]
 }
