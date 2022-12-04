@@ -12,6 +12,7 @@
         "DefaultAttributeContainerMixin",
         "AttributeContainerMixin",
         "LivingEntityMixin",
+        "PlayerEntityMixin",
         "MobEntityMixin",
         "ServerPlayerEntityMixin",
         "LevelPropertiesMixin",
