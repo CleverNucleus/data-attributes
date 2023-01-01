@@ -48,5 +48,5 @@ public interface ItemHelper {
 	 * @param itemStack
 	 * @return
 	 */
-	SoundEvent getEquipSound(final ItemStack itemStack);
+	default SoundEvent getEquipSound(final ItemStack itemStack) { return null; }
 }
