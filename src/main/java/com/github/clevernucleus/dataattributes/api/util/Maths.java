@@ -1,5 +1,6 @@
 package com.github.clevernucleus.dataattributes.api.util;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -58,10 +59,31 @@ public final class Maths {
 	 * @param min
 	 * @param max
 	 * @return Returns true if the value is less than max and greater than or equal to min.
+	 * @since 1.4.0
 	 */
 	public static boolean isWithinLimits(final double value, final double min, final double max) {
-		if(value < min) return false;
-		if(value >= max) return false;
+		if(value < min || value >= max) return false;
 		return true;
+	}
+	
+	/**
+	 * @param value
+	 * @param arraySize This MUST be 8 or greater! No Checks are implemented for the sake of performance.
+	 * @return Returns a byte array with the first 8 bytes storing the input double.
+	 * @since 1.4.0
+	 */
+	public static byte[] doubleToByteArray(final double value, final int arraySize) {
+		byte[] array = new byte[arraySize];
+		ByteBuffer.wrap(array).putDouble(value);
+		return array;
+	}
+	
+	/**
+	 * @param array This MUST be an array of size 8 or greater! No Checks are implemented for the sake of performance.
+	 * @return Returns the double stored in the first 8 bytes of the array.
+	 * @since 1.4.0
+	 */
+	public static double byteArrayToDouble(final byte[] array) {
+		return ByteBuffer.wrap(array).getDouble();
 	}
 }

@@ -13,20 +13,22 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.github.clevernucleus.dataattributes.api.attribute.IAttributeFunction;
 import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttribute;
 import com.github.clevernucleus.dataattributes.api.attribute.StackingBehaviour;
 import com.github.clevernucleus.dataattributes.api.event.EntityAttributeModifiedEvents;
+import com.github.clevernucleus.dataattributes.json.AttributeFunctionJson;
 import com.github.clevernucleus.dataattributes.mutable.MutableEntityAttribute;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.util.math.MathHelper;
 
 @Mixin(EntityAttribute.class)
 abstract class EntityAttributeMixin implements MutableEntityAttribute {
-	@Unique private Map<IEntityAttribute, Double> data_parents, data_children;
+	@Unique private Map<IEntityAttribute, AttributeFunctionJson> data_parents, data_children;
 	@Unique private Map<String, String> data_properties;
 	@Unique private StackingBehaviour data_stackingBehaviour;
 	@Unique private String data_translationKey;
@@ -47,8 +49,8 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 		this.data_minValue = Integer.MIN_VALUE;
 		this.data_maxValue = Integer.MAX_VALUE;
 		this.data_stackingBehaviour = StackingBehaviour.FLAT;
-		this.data_parents = new Object2DoubleArrayMap<IEntityAttribute>();
-		this.data_children = new Object2DoubleArrayMap<IEntityAttribute>();
+		this.data_parents = new Object2ObjectArrayMap<IEntityAttribute, AttributeFunctionJson>();
+		this.data_children = new Object2ObjectArrayMap<IEntityAttribute, AttributeFunctionJson>();
 		this.data_properties = new HashMap<String, String>();
 	}
 	
@@ -94,16 +96,16 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public void addParent(MutableEntityAttribute attributeIn, double multiplier) {
-		this.data_parents.put(attributeIn, multiplier);
+	public void addParent(MutableEntityAttribute attributeIn, AttributeFunctionJson function) {
+		this.data_parents.put(attributeIn, function);
 	}
 	
 	@Override
-	public void addChild(MutableEntityAttribute attributeIn, double multiplier) {
+	public void addChild(MutableEntityAttribute attributeIn, AttributeFunctionJson function) {
 		if(this.contains(this, attributeIn)) return;
 		
-		attributeIn.addParent(this, multiplier);
-		this.data_children.put(attributeIn, multiplier);
+		attributeIn.addParent(this, function);
+		this.data_children.put(attributeIn, function);
 	}
 	
 	@Override
@@ -133,12 +135,12 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public Map<IEntityAttribute, Double> parentsMutable() {
+	public Map<IEntityAttribute, AttributeFunctionJson> parentsMutable() {
 		return this.data_parents;
 	}
 	
 	@Override
-	public Map<IEntityAttribute, Double> childrenMutable() {
+	public Map<IEntityAttribute, AttributeFunctionJson> childrenMutable() {
 		return this.data_children;
 	}
 	
@@ -158,12 +160,12 @@ abstract class EntityAttributeMixin implements MutableEntityAttribute {
 	}
 	
 	@Override
-	public Map<IEntityAttribute, Double> parents() {
+	public Map<IEntityAttribute, IAttributeFunction> parents() {
 		return ImmutableMap.copyOf(this.data_parents);
 	}
 	
 	@Override
-	public Map<IEntityAttribute, Double> children() {
+	public Map<IEntityAttribute, IAttributeFunction> children() {
 		return ImmutableMap.copyOf(this.data_children);
 	}
 	

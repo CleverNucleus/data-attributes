@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 
 import com.github.clevernucleus.dataattributes.api.DataAttributesAPI;
 import com.github.clevernucleus.dataattributes.api.event.AttributesReloadedEvent;
+import com.github.clevernucleus.dataattributes.json.AttributeFunctionJson;
 import com.github.clevernucleus.dataattributes.json.AttributeOverrideJson;
 import com.github.clevernucleus.dataattributes.json.EntityTypesJson;
 import com.github.clevernucleus.dataattributes.json.FunctionsJson;
@@ -61,11 +62,11 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	
 	public AttributeManager() {}
 	
-	private static Map<Identifier, Double> formatFunctions(Map<String, Double> functionsIn) {
-		Map<Identifier, Double> functions = new HashMap<Identifier, Double>();
+	private static Map<Identifier, AttributeFunctionJson> formatFunctions(Map<String, AttributeFunctionJson> functionsIn) {
+		Map<Identifier, AttributeFunctionJson> functions = new HashMap<Identifier, AttributeFunctionJson>();
 		
 		for(String key : functionsIn.keySet()) {
-			double value = functionsIn.get(key);
+			AttributeFunctionJson value = functionsIn.get(key);
 			
 			functions.put(new Identifier(key), value);
 		}
@@ -151,7 +152,7 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			}
 		}
 		
-		Map<String, Map<String, Double>> functions = new HashMap<String, Map<String, Double>>();
+		Map<String, Map<String, AttributeFunctionJson>> functions = new HashMap<String, Map<String, AttributeFunctionJson>>();
 		cache.values().forEach(json -> json.merge(functions));
 		
 		for(String key : functions.keySet()) {

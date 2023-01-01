@@ -4,15 +4,16 @@ import java.util.Map;
 
 import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttribute;
 import com.github.clevernucleus.dataattributes.api.attribute.StackingBehaviour;
+import com.github.clevernucleus.dataattributes.json.AttributeFunctionJson;
 
 public interface MutableEntityAttribute extends IEntityAttribute {
 	void override(String translationKey, double minValue, double maxValue, double fallbackValue, double incrementValue, StackingBehaviour stackingBehaviour);
 	
 	void properties(Map<String, String> properties);
 	
-	void addParent(MutableEntityAttribute attributeIn, final double multiplier);
+	void addParent(MutableEntityAttribute attributeIn, final AttributeFunctionJson function);
 	
-	void addChild(MutableEntityAttribute attributeIn, final double multiplier);
+	void addChild(MutableEntityAttribute attributeIn, final AttributeFunctionJson function);
 	
 	void clear();
 	
@@ -20,7 +21,7 @@ public interface MutableEntityAttribute extends IEntityAttribute {
 	
 	boolean contains(MutableEntityAttribute a, MutableEntityAttribute b);
 	
-	Map<IEntityAttribute, Double> parentsMutable();
+	Map<IEntityAttribute, AttributeFunctionJson> parentsMutable();
 	
-	Map<IEntityAttribute, Double> childrenMutable();
+	Map<IEntityAttribute, AttributeFunctionJson> childrenMutable();
 }

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import com.github.clevernucleus.dataattributes.json.AttributeFunctionJson;
 import com.github.clevernucleus.dataattributes.json.AttributeOverrideJson;
 import com.github.clevernucleus.dataattributes.mutable.MutableEntityAttribute;
 
@@ -14,11 +15,11 @@ import net.minecraft.util.registry.Registry;
 
 public final class EntityAttributeData {
 	private AttributeOverrideJson attribute;
-	private final Map<Identifier, Double> functions;
+	private final Map<Identifier, AttributeFunctionJson> functions;
 	private final Map<String, String> properties;
 	
 	public EntityAttributeData() {
-		this.functions = new HashMap<Identifier, Double>();
+		this.functions = new HashMap<Identifier, AttributeFunctionJson>();
 		this.properties = new HashMap<String, String>();
 	}
 	
@@ -42,12 +43,12 @@ public final class EntityAttributeData {
 			
 			if(entityAttribute == null) continue;
 			
-			double multiplier = this.functions.get(identifier);
-			mutableEntityAttribute.addChild((MutableEntityAttribute)entityAttribute, multiplier);
+			AttributeFunctionJson function = this.functions.get(identifier);
+			mutableEntityAttribute.addChild((MutableEntityAttribute)entityAttribute, function);
 		}
 	}
 	
-	public void putFunctions(Map<Identifier, Double> functions) {
+	public void putFunctions(Map<Identifier, AttributeFunctionJson> functions) {
 		this.functions.putAll(functions);
 	}
 	
@@ -62,7 +63,7 @@ public final class EntityAttributeData {
 		}
 		
 		NbtCompound functions = tag.getCompound("Functions");
-		functions.getKeys().forEach(key -> this.functions.put(new Identifier(key), functions.getDouble(key)));
+		functions.getKeys().forEach(key -> this.functions.put(new Identifier(key), AttributeFunctionJson.read(functions.getByteArray(key))));
 		
 		NbtCompound properties = tag.getCompound("Properties");
 		properties.getKeys().forEach(key -> this.properties.put(key, properties.getString(key)));
@@ -77,7 +78,7 @@ public final class EntityAttributeData {
 		}
 		
 		NbtCompound functions = new NbtCompound();
-		this.functions.forEach((key, value) -> functions.putDouble(key.toString(), value));
+		this.functions.forEach((key, value) -> functions.putByteArray(key.toString(), value.write()));
 		tag.put("Functions", functions);
 		
 		NbtCompound properties = new NbtCompound();

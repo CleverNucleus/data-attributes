@@ -28,13 +28,15 @@ public interface IEntityAttribute {
 	
 	/**
 	 * @return An immutable map of the function-parents attached to this attribute.
+	 * @since 1.4.0
 	 */
-	Map<IEntityAttribute, Double> parents();
+	Map<IEntityAttribute, IAttributeFunction> parents();
 	
 	/**
 	 * @return An immutable map of the function-children attached to this attribute.
+	 * @since 1.4.0
 	 */
-	Map<IEntityAttribute, Double> children();
+	Map<IEntityAttribute, IAttributeFunction> children();
 	
 	/**
 	 * @return An immutable collection of the properties' keys attached to this attribute.

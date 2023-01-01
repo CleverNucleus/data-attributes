@@ -17,11 +17,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.github.clevernucleus.dataattributes.api.attribute.FunctionBehaviour;
 import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttribute;
 import com.github.clevernucleus.dataattributes.api.attribute.IEntityAttributeInstance;
 import com.github.clevernucleus.dataattributes.api.attribute.StackingBehaviour;
 import com.github.clevernucleus.dataattributes.api.event.EntityAttributeModifiedEvents;
 import com.github.clevernucleus.dataattributes.api.util.VoidConsumer;
+import com.github.clevernucleus.dataattributes.json.AttributeFunctionJson;
 import com.github.clevernucleus.dataattributes.mutable.MutableAttributeContainer;
 import com.github.clevernucleus.dataattributes.mutable.MutableAttributeInstance;
 import com.github.clevernucleus.dataattributes.mutable.MutableAttributeModifier;
@@ -110,14 +112,16 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 		}
 		
 		if(this.data_containerCallback != null) {
-			Map<IEntityAttribute, Double> parents = ((MutableEntityAttribute)attribute).parentsMutable();
+			Map<IEntityAttribute, AttributeFunctionJson> parents = ((MutableEntityAttribute)attribute).parentsMutable();
 			
 			for(IEntityAttribute parent : parents.keySet()) {
 				EntityAttributeInstance instance = this.data_containerCallback.getCustomInstance((EntityAttribute)parent);
 				
 				if(instance == null) continue;
+				AttributeFunctionJson function = parents.get(parent);
 				
-				double multiplier = parents.get(parent);
+				if(function.behaviour() != FunctionBehaviour.ADDITION) continue;
+				double multiplier = function.value();
 				double value = multiplier * instance.getValue();
 				
 				if(value > 0.0D) {
@@ -141,6 +145,20 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 		
 		for(EntityAttributeModifier modifier : this.getModifiersByOperation(EntityAttributeModifier.Operation.MULTIPLY_TOTAL)) {
 			e *= 1.0D + modifier.getValue();
+		}
+		
+		if(this.data_containerCallback != null) {
+			Map<IEntityAttribute, AttributeFunctionJson> parents = ((MutableEntityAttribute)attribute).parentsMutable();
+			
+			for(IEntityAttribute parent : parents.keySet()) {
+				EntityAttributeInstance instance = this.data_containerCallback.getCustomInstance((EntityAttribute)parent);
+				
+				if(instance == null) continue;
+				AttributeFunctionJson function = parents.get(parent);
+				
+				if(function.behaviour() != FunctionBehaviour.MULTIPLY) continue;
+				e *= 1.0D + (instance.getValue() * function.value());
+			}
 		}
 		
 		double value = ((EntityAttribute)attribute).clamp(e);
