@@ -3,12 +3,17 @@ package com.github.clevernucleus.dataattributes.impl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 import org.slf4j.Logger;
 
@@ -23,6 +28,7 @@ import com.github.clevernucleus.dataattributes.mutable.MutableEntityAttribute;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
 
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
@@ -32,6 +38,8 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.DefaultAttributeRegistry;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.StringNbtReader;
+import net.minecraft.nbt.visitor.StringNbtWriter;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -49,6 +57,7 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	private Map<Identifier, EntityAttributeData> entityAttributeData = ImmutableMap.of();
 	private Map<Identifier, EntityTypeData> entityTypeData = ImmutableMap.of();
 	public Map<EntityType<? extends LivingEntity>, DefaultAttributeContainer> containers = ImmutableMap.of();
+	private byte[] currentData;
 	
 	protected static class Wrapper {
 		public final Map<Identifier, EntityAttributeData> entityAttributeData;
@@ -248,11 +257,9 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		}
 	}
 	
-	public DefaultAttributeContainer getContainer(EntityType<? extends LivingEntity> entityType) {
-		return this.containers.getOrDefault(entityType, DefaultAttributeRegistry.get(entityType));
-	}
-	
-	public void toNbt(NbtCompound tag) {
+	private void generateCurrentData() {
+		StringNbtWriter writer = new StringNbtWriter();
+		NbtCompound nbt = new NbtCompound();
 		NbtCompound entityAttributeNbt = new NbtCompound();
 		NbtCompound entityTypeNbt = new NbtCompound();
 		
@@ -268,14 +275,60 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			entityTypeNbt.put(key.toString(), entry);
 		});
 		
-		tag.put("Attributes", entityAttributeNbt);
-		tag.put("EntityTypes", entityTypeNbt);
+		nbt.put("Attributes", entityAttributeNbt);
+		nbt.put("EntityTypes", entityTypeNbt);
+		
+		String snbt = writer.apply(nbt);
+		byte[] bytes;
+		
+		try {
+			bytes = snbt.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			bytes = new byte[] {(byte)0};
+		}
+		
+		Deflater deflater = new Deflater();
+		deflater.setInput(bytes);
+		deflater.finish();
+		
+		byte[] compressed = new byte[8192];
+		int size = deflater.deflate(compressed);
+		deflater.end();
+		this.currentData = Arrays.copyOf(compressed, size);
 	}
 	
-	public void fromNbt(NbtCompound tag) {
-		if(tag.contains("Attributes")) {
+	public byte[] getCurrentData() {
+		if(this.currentData == null) return new byte[] {(byte)0};
+		return this.currentData;
+	}
+	
+
+	public void readFromData(byte[] data) {
+		Inflater inflater = new Inflater();
+		inflater.setInput(data);
+		
+		byte[] cache = new byte[8192];
+		int size;
+		try {
+			size = inflater.inflate(cache);
+		} catch (DataFormatException e) {
+			size = 1;
+		}
+		
+		inflater.end();
+		byte[] uncompressed = Arrays.copyOf(cache, size);
+		String snbt = new String(uncompressed);
+		NbtCompound nbt;
+		
+		try {
+			nbt = StringNbtReader.parse(snbt);
+		} catch (CommandSyntaxException e) {
+			nbt = new NbtCompound();
+		}
+		
+		if(nbt.contains("Attributes")) {
 			ImmutableMap.Builder<Identifier, EntityAttributeData> builder = ImmutableMap.builder();
-			NbtCompound nbtCompound = tag.getCompound("Attributes");
+			NbtCompound nbtCompound = nbt.getCompound("Attributes");
 			nbtCompound.getKeys().forEach(key -> {
 				NbtCompound entry = nbtCompound.getCompound(key);
 				EntityAttributeData entityAttributeData = new EntityAttributeData();
@@ -286,9 +339,9 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			this.entityAttributeData = builder.build();
 		}
 		
-		if(tag.contains("EntityTypes")) {
+		if(nbt.contains("EntityTypes")) {
 			ImmutableMap.Builder<Identifier, EntityTypeData> builder = ImmutableMap.builder();
-			NbtCompound nbtCompound = tag.getCompound("EntityTypes");
+			NbtCompound nbtCompound = nbt.getCompound("EntityTypes");
 			nbtCompound.getKeys().forEach(key -> {
 				NbtCompound entry = nbtCompound.getCompound(key);
 				EntityTypeData entityTypeData = new EntityTypeData();
@@ -298,6 +351,10 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			
 			this.entityTypeData = builder.build();
 		}
+	}
+	
+	public DefaultAttributeContainer getContainer(EntityType<? extends LivingEntity> entityType) {
+		return this.containers.getOrDefault(entityType, DefaultAttributeRegistry.get(entityType));
 	}
 	
 	public void apply() {
@@ -370,6 +427,7 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			data.entityTypeData.forEach(entityTypeData::put);
 			this.entityTypeData = entityTypeData.build();
 			
+			this.generateCurrentData();
 			this.apply();
 		}, executor);
 	}

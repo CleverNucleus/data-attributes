@@ -15,6 +15,7 @@
         "PlayerEntityMixin",
         "MobEntityMixin",
         "ServerPlayerEntityMixin",
+        "MutableWorldPropertiesMixin",
         "LevelPropertiesMixin",
         "UnmodifiableLevelPropertiesMixin",
         "GameJoinS2CPacketMixin",

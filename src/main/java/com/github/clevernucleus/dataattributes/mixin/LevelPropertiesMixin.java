@@ -22,7 +22,7 @@ import net.minecraft.world.level.LevelProperties;
 import net.minecraft.world.level.storage.SaveVersionInfo;
 
 @Mixin(LevelProperties.class)
-abstract class LevelPropertiesMixin implements MutableIntFlag {
+abstract class LevelPropertiesMixin implements MutableWorldPropertiesMixin {
 	
 	@Unique
 	private int data_updateFlag;
