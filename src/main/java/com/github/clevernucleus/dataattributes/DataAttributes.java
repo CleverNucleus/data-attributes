@@ -24,12 +24,10 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginNetworkHandler;
-import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 
 public class DataAttributes implements ModInitializer {
@@ -42,22 +40,13 @@ public class DataAttributes implements ModInitializer {
 	
 	private static void loginQueryStart(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
 		PacketByteBuf buf = PacketByteBufs.create();
-		NbtCompound tag = new NbtCompound();
-		DataAttributes.MANAGER.toNbt(tag);
-		buf.writeNbt(tag);
+		final byte[] bytes = DataAttributes.MANAGER.getCurrentData();
+		buf.writeByteArray(bytes);
 		sender.sendPacket(HANDSHAKE, buf);
 	}
 	
 	private static void loginQueryResponse(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, LoginSynchronizer synchronizer, PacketSender responseSender) {
-		if(understood) {
-			byte[] verClient = buf.readByteArray();
-			
-			if(verClient[0] != DataAttributes.semVer[0] || verClient[1] != DataAttributes.semVer[1]) {
-				handler.disconnect(new LiteralText("Disconnected: version mismatch. Client has version " + verClient + ". Server has version " + DataAttributes.version + "."));
-			}
-		} else {
-			handler.disconnect(new LiteralText("Disconnected: network communication issue."));
-		}
+		// Does doing nothing here make us compatible with Velocity plugin?
 	}
 	
 	private static void refreshAttributes(final Entity entity) {

@@ -10,7 +10,7 @@ import net.minecraft.world.level.ServerWorldProperties;
 import net.minecraft.world.level.UnmodifiableLevelProperties;
 
 @Mixin(UnmodifiableLevelProperties.class)
-abstract class UnmodifiableLevelPropertiesMixin implements MutableIntFlag {
+abstract class UnmodifiableLevelPropertiesMixin implements MutableWorldPropertiesMixin {
 	
 	@Final
 	@Shadow

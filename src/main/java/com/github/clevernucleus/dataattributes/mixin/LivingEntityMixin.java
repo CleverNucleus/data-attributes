@@ -16,6 +16,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.AttributeContainer;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProperties;
 
 @Mixin(value = LivingEntity.class, priority = 999)
 abstract class LivingEntityMixin {
@@ -27,10 +28,16 @@ abstract class LivingEntityMixin {
 	@Unique
 	private int data_updateFlag;
 	
+	private int data_checkedUpdateFlag(World world) {
+		WorldProperties worldProperties = world.getLevelProperties();
+		if(!(worldProperties instanceof MutableIntFlag)) return 0;
+		return ((MutableIntFlag)worldProperties).getUpdateFlag();
+	}
+	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void data_init(EntityType<? extends LivingEntity> entityType, World world, CallbackInfo info) {
 		this.attributes = new AttributeContainer(DataAttributes.MANAGER.getContainer(entityType));
-		this.data_updateFlag = ((MutableIntFlag)world.getLevelProperties()).getUpdateFlag();
+		this.data_updateFlag = this.data_checkedUpdateFlag(world);
 		LivingEntity livingEntity = (LivingEntity)(Object)this;
 		((MutableAttributeContainer)livingEntity.getAttributes()).setLivingEntity(livingEntity);
 		livingEntity.setHealth(livingEntity.getMaxHealth());
@@ -39,7 +46,7 @@ abstract class LivingEntityMixin {
 	@Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tickActiveItemStack()V"))
 	private void data_tick(CallbackInfo info) {
 		LivingEntity livingEntity = (LivingEntity)(Object)this;
-		final int updateFlag = ((MutableIntFlag)livingEntity.world.getLevelProperties()).getUpdateFlag();
+		final int updateFlag = this.data_checkedUpdateFlag(livingEntity.world);
 		
 		if(this.data_updateFlag != updateFlag) {
 			AttributeContainer container = livingEntity.getAttributes();
