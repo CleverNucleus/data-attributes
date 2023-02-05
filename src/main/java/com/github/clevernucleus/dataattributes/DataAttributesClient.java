@@ -20,25 +20,26 @@ import net.minecraft.network.PacketByteBuf;
 
 public class DataAttributesClient implements ClientModInitializer {
 	private static CompletableFuture<PacketByteBuf> loginQueryReceived(MinecraftClient client, ClientLoginNetworkHandler handler, PacketByteBuf buf, Consumer<GenericFutureListener<? extends Future<? super Void>>> listenerAdder) {
-		final byte[] bytes = buf.readByteArray();
+		final byte[] entityAttributeData = buf.readByteArray();
+		final byte[] entityTypeData = buf.readByteArray();
 		
 		client.execute(() -> {
-			DataAttributes.MANAGER.readFromData(bytes);
+			DataAttributes.MANAGER.setEntityAttributeData(entityAttributeData);
+			DataAttributes.MANAGER.setEntityTypeData(entityTypeData);
 			DataAttributes.MANAGER.apply();
 		});
 		
-		PacketByteBuf bufOut = PacketByteBufs.create();
-		bufOut.writeByteArray(DataAttributes.semVer);
-		
-		return CompletableFuture.completedFuture(bufOut);
+		return CompletableFuture.completedFuture(PacketByteBufs.empty());
 	}
 	
 	private static void updateReceived(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-		final byte[] bytes = buf.readByteArray();
+		final byte[] entityAttributeData = buf.readByteArray();
+		final byte[] entityTypeData = buf.readByteArray();
 		final int updateFlag = buf.readInt();
 		
 		client.execute(() -> {
-			DataAttributes.MANAGER.readFromData(bytes);
+			DataAttributes.MANAGER.setEntityAttributeData(entityAttributeData);
+			DataAttributes.MANAGER.setEntityTypeData(entityTypeData);
 			DataAttributes.MANAGER.apply();
 			
 			ClientWorld world = client.world;

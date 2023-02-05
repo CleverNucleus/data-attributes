@@ -60,17 +60,9 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	private Map<Identifier, EntityAttributeData> entityAttributeData = ImmutableMap.of();
 	private Map<Identifier, EntityTypeData> entityTypeData = ImmutableMap.of();
 	public Map<EntityType<? extends LivingEntity>, DefaultAttributeContainer> containers = ImmutableMap.of();
-	private byte[] currentData;
+	private byte[] entityAttributeBytes, entityTypeBytes;
 	
-	protected static class Wrapper {
-		public final Map<Identifier, EntityAttributeData> entityAttributeData;
-		public final Map<Identifier, EntityTypeData> entityTypeData;
-		
-		public Wrapper(Map<Identifier, EntityAttributeData> entityAttributeData, Map<Identifier, EntityTypeData> entityTypeData) {
-			this.entityAttributeData = entityAttributeData;
-			this.entityTypeData = entityTypeData;
-		}
-	}
+	protected record Wrapper(Map<Identifier, EntityAttributeData> entityAttributeData, Map<Identifier, EntityTypeData> entityTypeData) {}
 	
 	public AttributeManager() {}
 	
@@ -242,33 +234,22 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		}
 	}
 	
-	private void generateCurrentData() {
+	private <T extends NbtIO> byte[] generateCurrentData(final Map<Identifier, T> data) {
 		StringNbtWriter writer = new StringNbtWriter();
-		NbtCompound nbt = new NbtCompound();
-		NbtCompound entityAttributeNbt = new NbtCompound();
-		NbtCompound entityTypeNbt = new NbtCompound();
+		NbtCompound tag = new NbtCompound();
 		
-		this.entityAttributeData.forEach((key, value) -> {
+		data.forEach((key, value) -> {
 			NbtCompound entry = new NbtCompound();
 			value.writeToNbt(entry);
-			entityAttributeNbt.put(key.toString(), entry);
+			tag.put(key.toString(), entry);
 		});
 		
-		this.entityTypeData.forEach((key, value) -> {
-			NbtCompound entry = new NbtCompound();
-			value.writeToNbt(entry);
-			entityTypeNbt.put(key.toString(), entry);
-		});
-		
-		nbt.put("Attributes", entityAttributeNbt);
-		nbt.put("EntityTypes", entityTypeNbt);
-		
-		String snbt = writer.apply(nbt);
+		String snbt = writer.apply(tag);
 		byte[] bytes;
 		
 		try {
 			bytes = snbt.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
+		} catch(UnsupportedEncodingException e) {
 			bytes = new byte[] {(byte)0};
 		}
 		
@@ -276,23 +257,20 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		deflater.setInput(bytes);
 		deflater.finish();
 		
-		byte[] compressed = new byte[8192];
+		byte[] compressed = new byte[Short.MAX_VALUE];
 		int size = deflater.deflate(compressed);
 		deflater.end();
-		this.currentData = Arrays.copyOf(compressed, size);
-	}
-	
-	public byte[] getCurrentData() {
-		if(this.currentData == null) return new byte[] {(byte)0};
-		return this.currentData;
-	}
-	
-	public void readFromData(byte[] data) {
-		Inflater inflater = new Inflater();
-		inflater.setInput(data);
 		
-		byte[] cache = new byte[8192];
+		return Arrays.copyOf(compressed, size);
+	}
+	
+	private NbtCompound readFromData(byte[] bytesIn) {
+		Inflater inflater = new Inflater();
+		inflater.setInput(bytesIn);
+		
+		byte[] cache = new byte[Short.MAX_VALUE];
 		int size;
+		
 		try {
 			size = inflater.inflate(cache);
 		} catch (DataFormatException e) {
@@ -310,37 +288,50 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			nbt = new NbtCompound();
 		}
 		
-		if(nbt.contains("Attributes")) {
-			ImmutableMap.Builder<Identifier, EntityAttributeData> builder = ImmutableMap.builder();
-			NbtCompound nbtCompound = nbt.getCompound("Attributes");
-			nbtCompound.getKeys().forEach(key -> {
-				NbtCompound entry = nbtCompound.getCompound(key);
-				EntityAttributeData entityAttributeData = new EntityAttributeData();
-				entityAttributeData.readFromNbt(entry);
-				builder.put(new Identifier(key), entityAttributeData);
-			});
-			
-			this.entityAttributeData = builder.build();
-		}
+		return nbt;
+	}
+	
+	public void setEntityAttributeData(byte[] bytesIn) {
+		NbtCompound tag = this.readFromData(bytesIn);
+		ImmutableMap.Builder<Identifier, EntityAttributeData> builder = ImmutableMap.builder();
+		tag.getKeys().forEach(key -> {
+			NbtCompound entry = tag.getCompound(key);
+			EntityAttributeData entityAttributeData = new EntityAttributeData();
+			entityAttributeData.readFromNbt(entry);
+			builder.put(new Identifier(key), entityAttributeData);
+		});
 		
-		if(nbt.contains("EntityTypes")) {
-			ImmutableMap.Builder<Identifier, EntityTypeData> builder = ImmutableMap.builder();
-			NbtCompound nbtCompound = nbt.getCompound("EntityTypes");
-			nbtCompound.getKeys().forEach(key -> {
-				NbtCompound entry = nbtCompound.getCompound(key);
-				EntityTypeData entityTypeData = new EntityTypeData();
-				entityTypeData.readFromNbt(entry);
-				builder.put(new Identifier(key), entityTypeData);
-			});
-			
-			this.entityTypeData = builder.build();
-		}
+		this.entityAttributeData = builder.build();
+	}
+	
+	public void setEntityTypeData(byte[] bytesIn) {
+		NbtCompound tag = this.readFromData(bytesIn);
+		ImmutableMap.Builder<Identifier, EntityTypeData> builder = ImmutableMap.builder();
+		tag.getKeys().forEach(key -> {
+			NbtCompound entry = tag.getCompound(key);
+			EntityTypeData entityTypeData = new EntityTypeData();
+			entityTypeData.readFromNbt(entry);
+			builder.put(new Identifier(key), entityTypeData);
+		});
+		
+		this.entityTypeData = builder.build();
+	}
+	
+	public byte[] getEntityAttributeData() {
+		if(this.entityAttributeBytes == null) return new byte[] {(byte)0};
+		return this.entityAttributeBytes;
+	}
+	
+	public byte[] getEntityTypeData() {
+		if(this.entityTypeBytes == null) return new byte[] {(byte)0};
+		return this.entityTypeBytes;
 	}
 	
 	public DefaultAttributeContainer getContainer(EntityType<? extends LivingEntity> entityType) {
 		return this.containers.getOrDefault(entityType, DefaultAttributeRegistry.get(entityType));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void apply() {
 		MutableRegistryImpl.unregister(Registry.ATTRIBUTE);
 		
@@ -372,7 +363,6 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		for(Identifier identifier : this.entityTypeData.keySet()) {
 			if(!entityTypes.contains(identifier)) continue;
 			
-			@SuppressWarnings("unchecked")
 			EntityType<? extends LivingEntity> entityType = (EntityType<? extends LivingEntity>)Registry.ENTITY_TYPE.get(identifier);
 			DefaultAttributeContainer.Builder builder = DefaultAttributeContainer.builder();
 			EntityTypeData entityTypeData = this.entityTypeData.get(identifier);
@@ -406,12 +396,13 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			ImmutableMap.Builder<Identifier, EntityAttributeData> entityAttributeData = ImmutableMap.builder();
 			data.entityAttributeData.forEach(entityAttributeData::put);
 			this.entityAttributeData = entityAttributeData.build();
+			this.entityAttributeBytes = this.generateCurrentData(this.entityAttributeData);
 			
 			ImmutableMap.Builder<Identifier, EntityTypeData> entityTypeData = ImmutableMap.builder();
 			data.entityTypeData.forEach(entityTypeData::put);
 			this.entityTypeData = entityTypeData.build();
+			this.entityTypeBytes = this.generateCurrentData(this.entityTypeData);
 			
-			this.generateCurrentData();
 			this.apply();
 		}, executor);
 	}
