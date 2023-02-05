@@ -11,7 +11,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
-public final class EntityTypeData {
+public final class EntityTypeData implements NbtIO {
 	public final Map<Identifier, Double> data;
 	
 	public EntityTypeData() {
@@ -37,10 +37,12 @@ public final class EntityTypeData {
 		}
 	}
 	
+	@Override
 	public void readFromNbt(NbtCompound tag) {
 		tag.getKeys().forEach(key -> this.data.put(new Identifier(key), tag.getDouble(key)));
 	}
 	
+	@Override
 	public void writeToNbt(NbtCompound tag) {
 		this.data.forEach((key, value) -> tag.putDouble(key.toString(), value));
 	}

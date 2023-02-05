@@ -40,8 +40,8 @@ abstract class ReloadCommandMixin {
 			mutableUpdateFlag.setUpdateFlag(updateFlag2);
 			
 			PacketByteBuf buf = PacketByteBufs.create();
-			final byte[] bytes = DataAttributes.MANAGER.getCurrentData();
-			buf.writeByteArray(bytes);
+			buf.writeByteArray(DataAttributes.MANAGER.getEntityAttributeData());
+			buf.writeByteArray(DataAttributes.MANAGER.getEntityTypeData());
 			buf.writeInt(mutableUpdateFlag.getUpdateFlag());
 			PlayerLookup.all(server).forEach(player -> ServerPlayNetworking.send(player, DataAttributes.RELOAD, buf));
 		}

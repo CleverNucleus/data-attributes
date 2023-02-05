@@ -40,8 +40,8 @@ public class DataAttributes implements ModInitializer {
 	
 	private static void loginQueryStart(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
 		PacketByteBuf buf = PacketByteBufs.create();
-		final byte[] bytes = DataAttributes.MANAGER.getCurrentData();
-		buf.writeByteArray(bytes);
+		buf.writeByteArray(DataAttributes.MANAGER.getEntityAttributeData());
+		buf.writeByteArray(DataAttributes.MANAGER.getEntityTypeData());
 		sender.sendPacket(HANDSHAKE, buf);
 	}
 	

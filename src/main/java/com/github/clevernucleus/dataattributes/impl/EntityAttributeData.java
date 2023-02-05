@@ -13,7 +13,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
-public final class EntityAttributeData {
+public final class EntityAttributeData implements NbtIO {
 	private AttributeOverrideJson attribute;
 	private final Map<Identifier, AttributeFunctionJson> functions;
 	private final Map<String, String> properties;
@@ -56,6 +56,7 @@ public final class EntityAttributeData {
 		this.properties.putAll(properties);
 	}
 	
+	@Override
 	public void readFromNbt(NbtCompound tag) {
 		if(tag.contains("Attribute")) {
 			this.attribute = new AttributeOverrideJson();
@@ -69,6 +70,7 @@ public final class EntityAttributeData {
 		properties.getKeys().forEach(key -> this.properties.put(key, properties.getString(key)));
 	}
 	
+	@Override
 	public void writeToNbt(NbtCompound tag) {
 		NbtCompound attribute = new NbtCompound();
 		
