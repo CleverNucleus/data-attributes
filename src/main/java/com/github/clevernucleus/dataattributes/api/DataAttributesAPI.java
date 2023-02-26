@@ -6,32 +6,32 @@ import java.util.function.Supplier;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.AttributeContainer;
 import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 /**
- * 
+ *
  * The core API access - provides access to the modid and safe static attribute instantiation.
  * @author CleverNucleus
  *
  */
 public final class DataAttributesAPI {
-	
+
 	/**
 	 * The modid for Data Attributes.
 	 */
 	public static final String MODID = "dataattributes";
-	
+
 	/**
 	 * @param attributeKey Attribute registry key.
-	 * @return A supplier getting the registered attribute assigned to the input key. 
+	 * @return A supplier getting the registered attribute assigned to the input key.
 	 * Uses a supplier because attributes added using json are null until datapacks are loaded/synced to the client,
 	 * so static initialisation would not work. Using this you can safely access an attribute through a static reference.
 	 */
 	public static Supplier<EntityAttribute> getAttribute(final Identifier attributeKey) {
-		return () -> Registry.ATTRIBUTE.get(attributeKey);
+		return () -> Registries.ATTRIBUTE.get(attributeKey);
 	}
-	
+
 	/**
 	 * Allows for an Optional-like use of attributes that may or may not exist all the time. This is the correct way of getting and using
 	 * values from attributes loaded by datapacks.
@@ -46,11 +46,11 @@ public final class DataAttributesAPI {
 	public static <T> T ifPresent(final LivingEntity livingEntity, Supplier<EntityAttribute> entityAttribute, final T fallback, Function<Double, T> function) {
 		AttributeContainer container = livingEntity.getAttributes();
 		EntityAttribute attribute = entityAttribute.get();
-		
+
 		if(attribute != null && container.hasAttribute(attribute)) {
 			return function.apply(container.getValue(attribute));
 		}
-		
+
 		return fallback;
 	}
 }
