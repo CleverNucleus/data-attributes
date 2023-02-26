@@ -32,7 +32,7 @@ import net.minecraft.util.Identifier;
 abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 
 	@Unique
-	private Collection<Identifier> data_idCache;
+	private Collection<Identifier> data_idCache = new HashSet<>();
 
 	@Final
 	@Shadow
@@ -67,13 +67,13 @@ abstract class SimpleRegistryMixin<T> implements MutableSimpleRegistry<T> {
 	@Shadow
 	private int nextId;
 
-	@Inject(method = "<init>", at = @At("TAIL"))
+	@Inject(method = "<init>(Lnet/minecraft/registry/RegistryKey;Lcom/mojang/serialization/Lifecycle;Z)V", at = @At("TAIL"))
 	private void data_init(CallbackInfo ci) {
-		this.data_idCache = new HashSet<Identifier>();
+		this.data_idCache = new HashSet<>();
 	}
 
 	@SuppressWarnings("unchecked")
-	@Inject(method = "assertNotFrozen", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "assertNotFrozen(Lnet/minecraft/registry/RegistryKey;)V", at = @At("HEAD"), cancellable = true)
 	private void data_assertNotFrozen(CallbackInfo ci) {
 		if((SimpleRegistry<T>)(Object)this == Registries.ATTRIBUTE) {
 			ci.cancel();
