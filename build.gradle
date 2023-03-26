@@ -1,7 +1,5 @@
-import com.modrinth.minotaur.dependencies.VersionDependency
-
 plugins {
-	id 'fabric-loom' version '0.12-SNAPSHOT'
+	id 'fabric-loom' version '1.1-SNAPSHOT'
 	id 'maven-publish'
     id "com.modrinth.minotaur" version "2.+"
 }
@@ -36,6 +34,20 @@ tasks.withType(JavaCompile).configureEach {
 	it.options.release = 17
 }
 
+javadoc {
+	options.addStringOption('Xdoclint:none', '-quiet')
+	classpath = files(sourceSets.main.compileClasspath)
+	include("**/api/**")
+}
+
+task javadocJar(type: Jar) {
+	dependsOn javadoc
+	from javadoc.destinationDir
+	archiveClassifier = "javadoc"
+}
+
+build.dependsOn javadocJar
+
 java {
 	withSourcesJar()
 }
@@ -56,17 +68,4 @@ publishing {
 	repositories {
 		
 	}
-}
-
-modrinth {
-    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    System.out.println("Enter a Modrinth token: ");
-    token = br.readLine();
-    projectId = "wFyCClLQ"
-    versionNumber = "${project.mod_version}"
-    versionName = "${project.mod_version}"
-    uploadFile = remapJar
-    gameVersions = ["${project.minecraft_version}"]
-    loaders = ["fabric"]
-    dependencies = [new VersionDependency("8rIblgME", "required")]
 }
