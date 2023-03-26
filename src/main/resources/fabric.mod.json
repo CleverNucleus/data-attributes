@@ -8,8 +8,8 @@
         "CleverNucleus"
     ],
     "contact": {
-        "homepage": "https://github.com/CleverNucleus/Data-Attributes",
-        "sources": "https://github.com/CleverNucleus/Data-Attributes"
+        "homepage": "https://github.com/CleverNucleus/data-attributes",
+        "sources": "https://github.com/CleverNucleus/data-attributes"
     },
     "license": "MIT",
     "icon": "assets/dataattributes/icon.png",
@@ -26,8 +26,8 @@
         "dataattributes.mixins.json"
     ],
     "depends": {
-        "fabricloader": ">=0.14.10",
-        "fabric-api": ">=0.66.0",
+        "fabricloader": ">=0.14.18",
+        "fabric-api": ">=0.76.0",
         "minecraft": "1.19.2",
         "java": ">=17"
     }
