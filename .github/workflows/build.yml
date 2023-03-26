@@ -38,6 +38,12 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: deploy to GitHub
+      - name: deploy test one
         if: ${{ runner.os == 'Linux' && matrix.java == '17' && github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true }}
-        run: ./echo THIS IS A TEST NOBODY PANIC
+        run: echo THIS IS A TEST NOBODY PANIC
+      - name: deploy test two
+        if: ${{ runner.os == 'Linux' && matrix.java == '17' && github.event_name == 'pull_request' && github.event.pull_request.merged == true }}
+        run: echo THIS IS A TEST NOBODY PANIC
+      - name: deploy test three
+        if: ${{ runner.os == 'Linux' && matrix.java == '17' && github.event_name == 'pull_request' && github.event.action == 'closed' }}
+        run: echo THIS IS A TEST NOBODY PANIC
