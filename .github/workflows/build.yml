@@ -1,14 +1,9 @@
 name: Build and Deploy
 on:
   push:
-    branches:
-      - '*/dev'
-      - '*/main'
-  pull_request_target:
+  pull_request:
     types:
       - closed
-    branches:
-      - '*/main'
 
 jobs:
   build:
@@ -40,5 +35,5 @@ jobs:
           name: Artifacts
           path: build/libs/
       - name: deploy test
-        if: ${{ runner.os == 'Linux' && matrix.java == '17' && github.event.pull_request.merged == true }}
+        if: ${{ runner.os == 'Linux' && matrix.java == '17' && endsWith(github.ref, 'main') }}
         run: echo THIS IS A TEST NOBODY PANIC
