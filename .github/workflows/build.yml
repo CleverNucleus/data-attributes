@@ -26,19 +26,19 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-      - name: make gradle wrapper executable
-        if: ${{ runner.os != 'Windows' }}
-        run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew build
-      - name: capture build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '17' }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: Artifacts
-          path: build/libs/
+#      - name: make gradle wrapper executable
+#        if: ${{ runner.os != 'Windows' }}
+#        run: chmod +x ./gradlew
+#      - name: build
+#        run: ./gradlew build
+#      - name: capture build artifacts
+#        if: ${{ runner.os == 'Linux' && matrix.java == '17' }}
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: Artifacts
+#          path: build/libs/
       - name: deploy test
         if: ${{ runner.os == 'Linux' && matrix.java == '17' && format('refs/heads/{0}/main', env.BRANCH_PREFIX) == github.ref }}
         run: echo "THIS IS A TEST NOBODY PANIC. Also, variable is ${{ format('refs/heads/{0}/main', env.BRANCH_PREFIX) }}"
       - name: variable check
-        run: echo "var1=${{ runner.os == 'Linux' }} var2=${{ matrix.java == '17' }} var3=${{ format('refs/heads/{0}/main', env.BRANCH_PREFIX) == github.ref }}"
+        run: echo "prefix=${{ format('refs/heads/{0}/main', env.BRANCH_PREFIX) }} ref=${{ github.ref }}"
