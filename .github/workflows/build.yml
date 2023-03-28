@@ -7,7 +7,7 @@ on:
 
 env:
   BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
-  BRANCH_GITHUB: github.ref
+  BRANCH_GITHUB: $(github.ref)
 
 jobs:
   build:
