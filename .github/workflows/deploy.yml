@@ -16,5 +16,5 @@ jobs:
       - name: check branch
         if: |
           github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
-          github.event.pull_request.merged == true
-        run: echo "THIS IS A TEST NOBODY PANIC ${{ github.event.pull_request.merged }}"
+          ${{ github.event.pull_request.merged == true }}
+        run: echo "Check1=${{ github.event.pull_request.merged == true }}; Check2=${{ github.ref }}"
