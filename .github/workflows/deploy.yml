@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: check workflow runs
-        run: echo "Workflow Running"
+        run: echo "CHECK-1=${{ github.ref == format('refs/heads/{0}/main', env.BRANCH_PREFIX) }}; Check-2=${{ github.ref }}"
       - name: check branch
         if: ${{ github.ref == format('refs/heads/{0}/main', env.BRANCH_PREFIX) }}
         run: echo "CHECK-1=${{ github.ref == 'refs/heads/1.19.2/main' }}; Check-2=${{ github.ref }}"
