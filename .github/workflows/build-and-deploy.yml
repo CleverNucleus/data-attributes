@@ -7,8 +7,8 @@ on:
 jobs:
   build-and-deploy:
     env:
-      MOD_VERSION: $(cat gradle.properties | grep mod_version)
-      BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
+      MOD_VERSION: "$(cat gradle.properties | grep mod_version)"
+      BRANCH_PREFIX: "$(cat gradle.properties | grep mod_version | cut -d'+' -f2)"
     strategy:
       matrix:
         java: [
