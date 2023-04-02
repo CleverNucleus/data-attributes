@@ -14,5 +14,5 @@ jobs:
       - name: check workflow runs
         run: echo "Workflow Running"
       - name: check branch
-        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
+        if: ${{ github.ref == format('refs/heads/{0}/main', env.BRANCH_PREFIX) }}
         run: echo "CHECK-1=${{ github.ref == 'refs/heads/1.19.2/main' }}; Check-2=${{ github.ref }}"
