@@ -1,8 +1,6 @@
 name: Deploy
 on:
-  pull_request:
-    types:
-      - closed
+  push:
 
 env: 
   BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
