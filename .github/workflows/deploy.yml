@@ -1,0 +1,17 @@
+name: Deploy
+on:
+  pull_request:
+    - closed
+
+env: 
+  BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: check workflow runs
+        run: echo "Workflow Running"
+      - name: check branch
+        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
+        run: echo "THIS IS A TEST NOBODY PANIC"
