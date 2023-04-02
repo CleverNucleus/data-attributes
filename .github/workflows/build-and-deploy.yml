@@ -4,12 +4,11 @@ on:
     branches:
       - '*/main'
 
-env:
-  MOD_VERSION: $(cat gradle.properties | grep mod_version)
-  BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
-
 jobs:
   build-and-deploy:
+    env:
+      MOD_VERSION: $(cat gradle.properties | grep mod_version)
+      BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
     if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
     strategy:
       matrix:
