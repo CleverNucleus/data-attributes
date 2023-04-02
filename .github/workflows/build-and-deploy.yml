@@ -9,7 +9,6 @@ jobs:
     env:
       MOD_VERSION: $(cat gradle.properties | grep mod_version)
       BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
-    if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
     strategy:
       matrix:
         java: [
@@ -28,14 +27,18 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
       - name: build
+        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
         run: ./gradlew build
       - name: capture build artifacts
-        if: ${{ matrix.java == '17' }}
+        if: |
+          ${{ matrix.java == '17' }}
+          github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
         uses: actions/upload-artifact@v2
         with:
           name: Artifacts
           path: build/libs/
       - name: deploy with mc-publish
+        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
         uses: Kir-Antipov/mc-publish@v3.2
         with:
           modrinth-id: wFyCClLQ
