@@ -1,7 +1,6 @@
 plugins {
-	id 'fabric-loom' version '1.1-SNAPSHOT'
-	id 'maven-publish'
-    id "com.modrinth.minotaur" version "2.+"
+	id "fabric-loom" version "1.1-SNAPSHOT"
+	id "maven-publish"
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
@@ -35,14 +34,16 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 javadoc {
-	options.addStringOption('Xdoclint:none', '-quiet')
+	options.addStringOption("Xdoclint:none", "-quiet")
 	classpath = files(sourceSets.main.compileClasspath)
 	include("**/api/**")
 }
 
 task javadocJar(type: Jar) {
 	dependsOn javadoc
+	dependsOn processResources
 	from javadoc.destinationDir
+	from file("build/resources/main/fabric.mod.json")
 	archiveClassifier = "javadoc"
 }
 

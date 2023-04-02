@@ -1,18 +1,64 @@
-name: Deploy
+name: Build and Deploy
 on:
   push:
     branches:
       - '*/main'
 
-env: 
+env:
+  MOD_VERSION: $(cat gradle.properties | grep mod_version)
   BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
-### test
+
 jobs:
-  deploy:
+  build-and-deploy:
+    strategy:
+      matrix:
+        java: [
+          17,
+        ]
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
     steps:
-      - name: check workflow runs
-        run: echo "CHECK-1=${{ github.ref == format('refs/heads/{0}/main', env.BRANCH_PREFIX) }}; Check-2=${{ github.ref }}"
-      - name: check branch
-        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
-        run: echo "CHECK-1=${{ github.ref == 'refs/heads/1.19.2/main' }}; Check-2=${{ github.ref }}"
+      - name: checkout repository
+        uses: actions/checkout@v2
+      - name: validate gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: setup jdk ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: build
+        run: ./gradlew build
+      - name: capture build artifacts
+        if: ${{ matrix.java == '17' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Artifacts
+          path: build/libs/
+      - name: deploy with mc-publish
+        uses: Kir-Antipov/mc-publish@v3.2
+        with:
+          modrinth-id: wFyCClLQ
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-dependencies: |
+            P7dR8mSH | depends | *
+          
+          curseforge-id: 514734
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          curseforge-dependencies: |
+            306612 | depends | *
+
+          github-tag: ${{ env.MOD_VERSION }}
+          github-token: ${{ secrets.REPOSITORY_TOKEN }}
+          github-commitish: ${{ env.BRANCH_PREFIX }}/main
+
+          name: 'data attributes ${{ env.MOD_VERSION }}'
+          version: ${{ env.MOD_VERSION }}
+          version-type: release
+          files-secondary: build/libs/*-@(sources\|javadoc).jar
+          changelog-file: CHANGELOG.md
+
+          loaders: fabric
+          game-versions: ${{ env.BRANCH_VERSION }}
+          java: ${{ matrix.java == '17' }}
