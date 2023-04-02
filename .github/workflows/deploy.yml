@@ -14,5 +14,5 @@ jobs:
       - name: check workflow runs
         run: echo "Workflow Running"
       - name: check branch
-        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
+        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main' && github.event.pull_request.merged == true
         run: echo "THIS IS A TEST NOBODY PANIC"
