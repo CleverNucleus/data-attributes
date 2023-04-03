@@ -16,12 +16,14 @@ jobs:
         ]
     runs-on: ubuntu-latest
     steps:
+      - name: check environment variables
+        run: env
       - name: checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
       - name: setup jdk ${{ matrix.java }}
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
           java-version: ${{ matrix.java }}
       - name: make gradle wrapper executable
@@ -42,7 +44,7 @@ jobs:
         uses: Kir-Antipov/mc-publish@v3.2
         with:
           modrinth-id: wFyCClLQ
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-token: "${{secrets.MODRINTH_TOKEN}}"
           modrinth-dependencies: |
             P7dR8mSH | depends | *
           # Modrinth has issues accepting javadocs right now
@@ -59,13 +61,10 @@ jobs:
           github-commitish: ${{ env.BRANCH_PREFIX }}/main
           github-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
-          version: ${{ env.MOD_VERSION }}
+          version: "${{env.MOD_VERSION}}"
           version-type: release
           changelog-file: CHANGELOG.md
 
-          loaders: |
-            fabric
-          game-versions: |
-            ${{ env.BRANCH_VERSION }}
-          java: |
-            ${{ matrix.java }}
+          loaders: fabric
+          game-versions: "${{env.BRANCH_VERSION}}"
+          java: "${{matrix.java}}"
