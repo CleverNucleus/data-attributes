@@ -39,9 +39,9 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: deploy with mc-publish
+      - name: attempt modrinth upload
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
-        uses: Kir-Antipov/mc-publish@v3.2
+        uses: Kir-Antipov/mc-publish@v2.1
         with:
           modrinth-id: wFyCClLQ
           modrinth-token: "${{secrets.MODRINTH_TOKEN}}"
@@ -50,17 +50,6 @@ jobs:
           # Modrinth has issues accepting javadocs right now
           modrinth-files-secondary: build/libs/*-sources.jar
 
-          #curseforge-id: 514734
-          #curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          #curseforge-dependencies: |
-          #  fabric-api | depends | *
-          #curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
-
-          github-tag: ${{ env.MOD_VERSION }}
-          github-token: ${{ secrets.REPOSITORY_TOKEN }}
-          github-commitish: ${{ env.BRANCH_PREFIX }}/main
-          github-files-secondary: build/libs/*-@(sources\|javadoc).jar
-
           version: "${{env.MOD_VERSION}}"
           version-type: release
           changelog-file: CHANGELOG.md
@@ -68,3 +57,34 @@ jobs:
           loaders: fabric
           game-versions: "${{env.BRANCH_VERSION}}"
           java: "${{matrix.java}}"
+
+      - name: deploy with mc-publish
+        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
+        run: echo "Testing.."
+        #uses: Kir-Antipov/mc-publish@v3.2
+        #with:
+          #modrinth-id: wFyCClLQ
+          #modrinth-token: "${{secrets.MODRINTH_TOKEN}}"
+          #modrinth-dependencies: |
+          #  P7dR8mSH | depends | *
+          # Modrinth has issues accepting javadocs right now
+          #modrinth-files-secondary: build/libs/*-sources.jar
+
+          #curseforge-id: 514734
+          #curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          #curseforge-dependencies: |
+          #  fabric-api | depends | *
+          #curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
+
+          #github-tag: ${{ env.MOD_VERSION }}
+          #github-token: ${{ secrets.REPOSITORY_TOKEN }}
+          #github-commitish: ${{ env.BRANCH_PREFIX }}/main
+          #github-files-secondary: build/libs/*-@(sources\|javadoc).jar
+
+          #version: "${{env.MOD_VERSION}}"
+          #version-type: release
+          #changelog-file: CHANGELOG.md
+
+          #loaders: fabric
+          #game-versions: "${{env.BRANCH_VERSION}}"
+          #java: "${{matrix.java}}"
