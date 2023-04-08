@@ -46,9 +46,9 @@ jobs:
           modrinth-id: wFyCClLQ
           modrinth-token: "${{secrets.MODRINTH_TOKEN}}"
           modrinth-dependencies: |
-            P7dR8mSH | depends | *
+            fabric-api | depends | *
           # Modrinth has issues accepting javadocs right now
-          modrinth-files-secondary: build/libs/*-sources.jar
+          #modrinth-files-secondary: build/libs/*-sources.jar
 
           version: "${{env.MOD_VERSION}}"
           version-type: release
