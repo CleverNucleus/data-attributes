@@ -50,7 +50,7 @@ jobs:
           # Modrinth has issues accepting javadocs right now
           #modrinth-files-secondary: build/libs/*-sources.jar
 
-          version: "${{env.MOD_VERSION}}"
+          version: "${{ env.MOD_VERSION }}"
           version-type: release
           changelog-file: CHANGELOG.md
 
