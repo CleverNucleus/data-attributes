@@ -41,6 +41,7 @@ jobs:
           path: build/libs/
       - name: attempt modrinth upload
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
+        run: echo "version=${{ env.MOD_VERSION }}"
         uses: Kir-Antipov/mc-publish@v3.2
         with:
           modrinth-id: wFyCClLQ
