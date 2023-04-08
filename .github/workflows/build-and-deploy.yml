@@ -41,6 +41,7 @@ jobs:
           path: build/libs/
       - name: attempt modrinth upload
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
+        run: echo "version=${{ env.MOD_VERSION }}"
         uses: Kir-Antipov/mc-publish@v3.2
         with:
           modrinth-id: wFyCClLQ
@@ -50,7 +51,7 @@ jobs:
           # Modrinth has issues accepting javadocs right now
           #modrinth-files-secondary: build/libs/*-sources.jar
 
-          version: "${{env.MOD_VERSION}}"
+          version: "${{ env.MOD_VERSION }}"
           version-type: release
           changelog-file: CHANGELOG.md
 
