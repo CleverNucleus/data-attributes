@@ -39,9 +39,10 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: attempt modrinth upload
+      - name: test version output
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
         run: echo "version=${{ env.MOD_VERSION }}"
+      - name: attempt modrinth upload
         uses: Kir-Antipov/mc-publish@v3.2
         with:
           modrinth-id: wFyCClLQ
