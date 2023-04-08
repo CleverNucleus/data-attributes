@@ -41,7 +41,7 @@ jobs:
           path: build/libs/
       - name: attempt modrinth upload
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
-        uses: Kir-Antipov/mc-publish@v2.1
+        uses: Kir-Antipov/mc-publish@v3.2
         with:
           modrinth-id: wFyCClLQ
           modrinth-token: "${{secrets.MODRINTH_TOKEN}}"
