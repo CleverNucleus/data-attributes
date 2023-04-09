@@ -1,11 +1,9 @@
 <img src="img/logo.png" alt="Data Attributes" height="100" />
 <hr />
 
-[![GitHub license](https://img.shields.io/github/license/CleverNucleus/Data-Attributes?style=flat-square)](https://github.com/CleverNucleus/Data-Attributes/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/CleverNucleus/Data-Attributes?style=flat-square)](https://github.com/CleverNucleus/Data-Attributes/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/CleverNucleus/Data-Attributes?style=flat-square)](https://github.com/CleverNucleus/Data-Attributes/network)
-[![GitHub issues](https://img.shields.io/github/issues/CleverNucleus/Data-Attributes?style=flat-square)](https://github.com/CleverNucleus/Data-Attributes/issues)
-
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/CleverNucleus/data-attributes?label=latest)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/CleverNucleus/data-attributes/build-and-deploy.yml)
+![GitHub](https://img.shields.io/github/license/CleverNucleus/data-attributes)
 
 ### What is Data Attributes?
 
