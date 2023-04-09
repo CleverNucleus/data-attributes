@@ -60,7 +60,7 @@ jobs:
           #  fabric-api | depends | *
           #curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
-          github-tag: ${{ env.MOD_VERSION }}
+          github-tag: "1.4.3+1.19.2"
           github-token: ${{ secrets.REPOSITORY_TOKEN }}
           github-commitish: ${{ env.BRANCH_PREFIX }}/main
           github-files-secondary: build/libs/*-@(sources\|javadoc).jar
