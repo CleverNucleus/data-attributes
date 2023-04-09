@@ -40,9 +40,14 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: set environment variable
+      - name: get mod version
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
-        run: echo "MOD_VERSION=$(grep -oP '^mod_version=\K.*' gradle.properties)" >> $GITHUB_ENV
+        id: mod_version
+        run: cat gradle.properties | grep mod_version | cut -d'=' -f2 >> $GITHUB_OUTPUT
+      - name: get minecraft version
+        if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
+        id: minecraft_version
+        run: cat gradle.properties | grep mod_version | cut -d'+' -f2 >> $GITHUB_OUTPUT
       - name: deploy with mc-publish
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
         uses: Kir-Antipov/mc-publish@v3.2
@@ -60,11 +65,11 @@ jobs:
           #  fabric-api | depends | *
           #curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
-          #github-tag: "${{ env.MOD_VERSION }}"
-          github-tag: "1.4.3+1.19.2"
+          github-tag: "${{ steps.mod_version.outputs.mod_version }}"
+          #github-tag: "1.4.3+1.19.2"
           github-token: ${{ secrets.REPOSITORY_TOKEN }}
-          #github-commitish: ${{ env.BRANCH_PREFIX }}/main
-          github-commitish: 1.19.2/main
+          github-commitish: ${{ steps.minecraft_version.outputs.minecraft_version }}/main
+          #github-commitish: 1.19.2/main
           github-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
           #version: "1.4.3+1.19.2"
