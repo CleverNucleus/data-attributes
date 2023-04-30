@@ -54,18 +54,18 @@ jobs:
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
         uses: Kir-Antipov/mc-publish@v3.2
         with:
+          #curseforge-id: 514734
+          #curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          #curseforge-dependencies: |
+          #  fabric-api | depends | *
+          #curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
+
           modrinth-id: wFyCClLQ
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
           modrinth-dependencies: |
             fabric-api | depends | *
           # Modrinth has issues accepting javadocs right now
-          #modrinth-files-secondary: build/libs/*-sources.jar
-
-          curseforge-id: 514734
-          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          curseforge-dependencies: |
-            fabric-api | depends | *
-          curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
+          modrinth-files-secondary: build/libs/*-sources.jar
 
           github-tag: "${{ steps.mod_version.outputs.mod_version }}"
           github-token: ${{ secrets.REPOSITORY_TOKEN }}
