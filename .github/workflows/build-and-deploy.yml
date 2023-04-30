@@ -65,12 +65,13 @@ jobs:
           modrinth-dependencies: |
             fabric-api | depends | *
           # Modrinth has issues accepting javadocs right now
-          # files-secondary: build/libs/*-sources.jar
+          modrinth-files-primary: build/libs/!(*-@(sources)).jar
+          modrinth-files-secondary: build/libs/*-sources.jar
 
-          # github-tag: "${{ steps.mod_version.outputs.mod_version }}"
-          # github-token: ${{ secrets.REPOSITORY_TOKEN }}
-          # github-commitish: ${{ steps.minecraft_version.outputs.minecraft_version }}/main
-          # github-files-secondary: build/libs/*-@(sources\|javadoc).jar
+          github-tag: "${{ steps.mod_version.outputs.mod_version }}"
+          github-token: ${{ secrets.REPOSITORY_TOKEN }}
+          github-commitish: ${{ steps.minecraft_version.outputs.minecraft_version }}/main
+          github-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
           version: "${{ steps.mod_version.outputs.mod_version }}"
           version-type: release
