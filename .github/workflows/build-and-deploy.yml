@@ -7,8 +7,6 @@ on:
 jobs:
   build-and-deploy:
     env:
-      #MOD_VERSION: $(cat gradle.properties | grep mod_version)
-      #MOD_VERSION: $(grep -oP '^mod_version=\K.*' gradle.properties)
       BRANCH_PREFIX: $(cat gradle.properties | grep mod_version | cut -d'+' -f2)
     strategy:
       matrix:
@@ -56,30 +54,28 @@ jobs:
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
         uses: Kir-Antipov/mc-publish@v3.2
         with:
-          #modrinth-id: wFyCClLQ
-          #modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
-          #modrinth-dependencies: |
-          #  fabric-api | depends | *
+          modrinth-id: wFyCClLQ
+          modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
+          modrinth-dependencies: |
+            fabric-api | depends | *
           # Modrinth has issues accepting javadocs right now
           #modrinth-files-secondary: build/libs/*-sources.jar
 
-          #curseforge-id: 514734
-          #curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
-          #curseforge-dependencies: |
-          #  fabric-api | depends | *
-          #curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
+          curseforge-id: 514734
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          curseforge-dependencies: |
+            fabric-api | depends | *
+          curseforge-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
           github-tag: "${{ steps.mod_version.outputs.mod_version }}"
-          #github-tag: "1.4.3+1.19.2"
           github-token: ${{ secrets.REPOSITORY_TOKEN }}
           github-commitish: ${{ steps.minecraft_version.outputs.minecraft_version }}/main
-          #github-commitish: 1.19.2/main
           github-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
-          #version: "1.4.3+1.19.2"
+          version: "${{ steps.mod_version.outputs.mod_version }}"
           version-type: release
           changelog-file: CHANGELOG.md
 
           loaders: fabric
-          #game-versions: "1.19.2"
+          game-versions: "${{ steps.minecraft_version.outputs.minecraft_version }}"
           java: "${{ matrix.java }}"
