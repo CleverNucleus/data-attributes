@@ -23,6 +23,36 @@ public final class DataAttributesAPI {
 	public static final String MODID = "dataattributes";
 	
 	/**
+	 * The entity instance for LivingEntity.class.
+	 */
+	public static final String ENTITY_INSTANCE_LIVING_ENTITY = "living_entity";
+
+	/**
+	 * The entity instance for MobEntity.class.
+	 */
+	public static final String ENTITY_INSTANCE_MOB_ENTITY = "mob_entity";
+
+	/**
+	 * The entity instance for PathAwareEntity.class.
+	 */
+	public static final String ENTITY_INSTANCE_PATH_AWARE_ENTITY = "path_aware_entity";
+
+	/**
+	 * The entity instance for HostileEntity.class.
+	 */
+	public static final String ENTITY_INSTANCE_HOSTILE_ENTITY = "hostile_entity";
+
+	/**
+	 * The entity instance for PassiveEntity.class.
+	 */
+	public static final String ENTITY_INSTANCE_PASSIVE_ENTITY = "passive_entity";
+
+	/**
+	 * The entity instance for AnimalEntity.class.
+	 */
+	public static final String ENTITY_INSTANCE_ANIMAL_ENTITY = "animal_entity";
+
+	/**
 	 * @param attributeKey Attribute registry key.
 	 * @return A supplier getting the registered attribute assigned to the input key. 
 	 * Uses a supplier because attributes added using json are null until datapacks are loaded/synced to the client,

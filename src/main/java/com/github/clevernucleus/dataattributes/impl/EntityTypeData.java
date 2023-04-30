@@ -24,7 +24,9 @@ public final class EntityTypeData implements NbtIO {
 	}
 	
 	public void build(DefaultAttributeContainer.Builder builder, DefaultAttributeContainer container) {
-		((MutableDefaultAttributeContainer)container).copy(builder);
+		if(container != null) {
+			((MutableDefaultAttributeContainer)container).copy(builder);
+		}
 		
 		for(Identifier key : this.data.keySet()) {
 			EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(key);

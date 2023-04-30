@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.github.clevernucleus.dataattributes.DataAttributes;
-import com.github.clevernucleus.dataattributes.mutable.MutableAttributeContainer;
 import com.github.clevernucleus.dataattributes.mutable.MutableIntFlag;
 
 import net.minecraft.entity.EntityType;
@@ -36,10 +35,9 @@ abstract class LivingEntityMixin {
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void data_init(EntityType<? extends LivingEntity> entityType, World world, CallbackInfo ci) {
-		this.attributes = new AttributeContainer(DataAttributes.MANAGER.getContainer(entityType));
-		this.data_updateFlag = this.data_checkedUpdateFlag(world);
 		LivingEntity livingEntity = (LivingEntity)(Object)this;
-		((MutableAttributeContainer)livingEntity.getAttributes()).setLivingEntity(livingEntity);
+		this.attributes = DataAttributes.MANAGER.getContainer(entityType, livingEntity);
+		this.data_updateFlag = this.data_checkedUpdateFlag(world);
 		livingEntity.setHealth(livingEntity.getMaxHealth());
 	}
 	
@@ -52,8 +50,7 @@ abstract class LivingEntityMixin {
 			AttributeContainer container = livingEntity.getAttributes();
 			
 			@SuppressWarnings("unchecked")
-			AttributeContainer container2 = new AttributeContainer(DataAttributes.MANAGER.getContainer((EntityType<? extends LivingEntity>)livingEntity.getType()));
-			((MutableAttributeContainer)container2).setLivingEntity(livingEntity);
+			AttributeContainer container2 = DataAttributes.MANAGER.getContainer((EntityType<? extends LivingEntity>)livingEntity.getType(), livingEntity);
 			container2.setFrom(container);
 			this.attributes = container2;
 			this.data_updateFlag = updateFlag;
