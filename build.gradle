@@ -47,7 +47,7 @@ task javadocJar(type: Jar) {
 	archiveClassifier = "javadoc"
 }
 
-build.dependsOn javadocJar
+// build.dependsOn javadocJar
 
 java {
 	withSourcesJar()
