@@ -64,8 +64,9 @@ jobs:
           modrinth-token: "${{ secrets.MODRINTH_TOKEN }}"
           modrinth-dependencies: |
             fabric-api | depends | *
+          modrinth-files-primary: build/libs/!(*-@(sources|javadoc)).jar
           # Modrinth has issues accepting javadocs right now
-          modrinth-files-secondary: build/libs/*-sources.jar
+          # modrinth-files-secondary: build/libs/*-sources.jar
 
           github-tag: "${{ steps.mod_version.outputs.mod_version }}"
           github-token: ${{ secrets.REPOSITORY_TOKEN }}
