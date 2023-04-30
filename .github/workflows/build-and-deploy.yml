@@ -52,7 +52,7 @@ jobs:
           echo "minecraft_version=$minecraft_version_val" >> $GITHUB_OUTPUT
       - name: deploy with mc-publish
         if: github.ref == 'refs/heads/${{ env.BRANCH_PREFIX }}/main'
-        uses: Kir-Antipov/mc-publish@v3.2
+        uses: Kir-Antipov/mc-publish@v2.1
         with:
           #curseforge-id: 514734
           #curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
@@ -66,12 +66,12 @@ jobs:
             fabric-api | depends | *
           modrinth-files-primary: build/libs/!(*-@(sources|javadoc)).jar
           # Modrinth has issues accepting javadocs right now
-          # modrinth-files-secondary: build/libs/*-sources.jar
+          modrinth-files-secondary: build/libs/*-sources.jar
 
-          github-tag: "${{ steps.mod_version.outputs.mod_version }}"
-          github-token: ${{ secrets.REPOSITORY_TOKEN }}
-          github-commitish: ${{ steps.minecraft_version.outputs.minecraft_version }}/main
-          github-files-secondary: build/libs/*-@(sources\|javadoc).jar
+          # github-tag: "${{ steps.mod_version.outputs.mod_version }}"
+          # github-token: ${{ secrets.REPOSITORY_TOKEN }}
+          # github-commitish: ${{ steps.minecraft_version.outputs.minecraft_version }}/main
+          # github-files-secondary: build/libs/*-@(sources\|javadoc).jar
 
           version: "${{ steps.mod_version.outputs.mod_version }}"
           version-type: release
