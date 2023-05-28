@@ -14,6 +14,7 @@ import com.github.clevernucleus.dataattributes.mutable.MutableIntFlag;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ReloadCommand;
@@ -40,8 +41,9 @@ abstract class ReloadCommandMixin {
 			mutableUpdateFlag.setUpdateFlag(updateFlag2);
 			
 			PacketByteBuf buf = PacketByteBufs.create();
-			buf.writeByteArray(DataAttributes.MANAGER.getEntityAttributeData());
-			buf.writeByteArray(DataAttributes.MANAGER.getEntityTypeData());
+			NbtCompound tag = new NbtCompound();
+			DataAttributes.MANAGER.toNbt(tag);
+			buf.writeNbt(tag);
 			buf.writeInt(mutableUpdateFlag.getUpdateFlag());
 			PlayerLookup.all(server).forEach(player -> ServerPlayNetworking.send(player, DataAttributes.RELOAD, buf));
 		}

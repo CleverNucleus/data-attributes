@@ -24,6 +24,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.MinecraftServer;
@@ -40,14 +41,13 @@ public class DataAttributes implements ModInitializer {
 	
 	private static void loginQueryStart(ServerLoginNetworkHandler handler, MinecraftServer server, PacketSender sender, ServerLoginNetworking.LoginSynchronizer synchronizer) {
 		PacketByteBuf buf = PacketByteBufs.create();
-		buf.writeByteArray(DataAttributes.MANAGER.getEntityAttributeData());
-		buf.writeByteArray(DataAttributes.MANAGER.getEntityTypeData());
+		NbtCompound tag = new NbtCompound();
+		DataAttributes.MANAGER.toNbt(tag);
+		buf.writeNbt(tag);
 		sender.sendPacket(HANDSHAKE, buf);
 	}
 	
-	private static void loginQueryResponse(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, LoginSynchronizer synchronizer, PacketSender responseSender) {
-		// Does doing nothing here make us compatible with Velocity plugin?
-	}
+	private static void loginQueryResponse(MinecraftServer server, ServerLoginNetworkHandler handler, boolean understood, PacketByteBuf buf, LoginSynchronizer synchronizer, PacketSender responseSender) {}
 	
 	private static void refreshAttributes(final Entity entity) {
 		if(!(entity instanceof LivingEntity)) return;
