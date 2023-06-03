@@ -52,12 +52,13 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	private Map<Identifier, EntityAttributeData> entityAttributeData = ImmutableMap.of();
 	private Map<Identifier, EntityTypeData> entityTypeData = ImmutableMap.of();
 	private AttributeContainerHandler handler = new AttributeContainerHandler();
-	
+	private int updateFlag = 0;
+
 	protected static final record Tuple<T>(Class<? extends LivingEntity> livingEntity, T value) {}
 	protected static final record Wrapper(Map<Identifier, EntityAttributeData> entityAttributeData, Map<Identifier, EntityTypeData> entityTypeData) {}
 	
 	public AttributeManager() {}
-	
+
 	private static Map<Identifier, AttributeFunctionJson> formatFunctions(Map<String, AttributeFunctionJson> functionsIn) {
 		Map<Identifier, AttributeFunctionJson> functions = new HashMap<Identifier, AttributeFunctionJson>();
 		
@@ -262,6 +263,7 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 
 		tag.put("Attributes", entityAttributeNbt);
 		tag.put("EntityTypes", entityTypeNbt);
+		tag.putInt("UpdateFlag", this.updateFlag);
 	}
 	
 	public void fromNbt(NbtCompound tag) {
@@ -288,6 +290,15 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			});
 			this.entityTypeData = builder.build();
 		}
+		this.updateFlag = tag.getInt("UpdateFlag");
+	}
+
+	public void nextUpdateFlag() {
+		this.updateFlag++;
+	}
+
+	public int getUpdateFlag() {
+		return this.updateFlag;
 	}
 
 	public AttributeContainer getContainer(final EntityType<? extends LivingEntity> entityType, final LivingEntity livingEntity) {
