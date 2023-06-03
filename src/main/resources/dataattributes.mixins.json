@@ -14,13 +14,6 @@
         "LivingEntityMixin",
         "PlayerEntityMixin",
         "MobEntityMixin",
-        "ServerPlayerEntityMixin",
-        "MutableWorldPropertiesMixin",
-        "LevelPropertiesMixin",
-        "UnmodifiableLevelPropertiesMixin",
-        "GameJoinS2CPacketMixin",
-        "PlayerRespawnS2CPacketMixin",
-        "PlayerManagerMixin",
         "ReloadCommandMixin",
 		"EntityTrackerEntryMixin",
         "item.ItemMixin",
@@ -30,8 +23,7 @@
         "item.ItemStackMixin"
     ],
     "client": [
-        "client.ClientWorldPropertiesMixin",
-        "client.ClientPlayNetworkHandlerMixin"
+        
     ],
     "injectors": {
         "defaultRequire": 1
