@@ -14,4 +14,6 @@ public interface MutableAttributeContainer {
 	void setLivingEntity(final LivingEntity livingEntity);
 	
 	void refresh();
+
+	void clearTracked();
 }

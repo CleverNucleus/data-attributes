@@ -47,6 +47,7 @@ task javadocJar(type: Jar) {
 	archiveClassifier = "javadoc"
 }
 
+// Modrinth has issues accepting javadocs right now
 // build.dependsOn javadocJar
 
 java {

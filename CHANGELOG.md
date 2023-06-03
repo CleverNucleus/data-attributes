@@ -1,25 +1,17 @@
 ### Changelog
 
-+Added hierarchy entity types that can be used to apply attributes to all entities that are an instance of an entity class. Currently supported types are as follows:
+This is primarily a bug-fixing and optimisation update.
 
-| **Identifier** | **Class Type** |
-| -------------- | -------------- |
-| `dataattributes:living_entity` | `LivingEntity` |
-| `dataattributes:mob_entity` | `MobEntity` |
-| `dataattributes:path_aware_entity` | `PathAwareEntity` |
-| `dataattributes:hostile_entity` | `HostileEntity` |
-| `dataattributes:passive_entity` | `PassiveEntity` |
-| `dataattributes:animal_entity` | `AnimalEntity` |
+*Changed the way `/reload` works to refresh attributes: 
 
-These have a hierarchy of:
+ - No longer saves the `updateFlag` to the level's nbt data.
+ - No longer injects the `updateFlag` into vanilla packets.
+ - Instead, we only use the `updateFlag` in runtime - not saving it at all, anywhere.
 
-```
-LivingEntity
-  ┗ MobEntity
-      ┗ PathAwareEntity
-          ┣ HostileEntity
-          ┗ PassiveEntity
-              ┗ AnimalEntity
-```
+*Fixed [#80](https://github.com/CleverNucleus/data-attributes/issues/80): attribute tracking is handled differently now.
 
-This feature is useful for when you want to modify the attributes of many different mobs, but do not know every mob's `EntityType` identifier.
+*Likely fixed an incompatibility between Data Attributes and ReplayMod: we no longer mess around with world properties at all.
+
+**May* have fixed long-standing issues [24](https://github.com/CleverNucleus/data-attributes/issues/24) and [10](https://github.com/CleverNucleus/data-attributes/issues/10): almost all networking has been removed - now we only send/receive two custom packets in the whole mod: on game join and when `/reload` is executed. 
+
+*Various performance improvements.
