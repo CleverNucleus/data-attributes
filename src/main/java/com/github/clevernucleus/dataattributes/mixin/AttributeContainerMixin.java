@@ -3,6 +3,8 @@ package com.github.clevernucleus.dataattributes.mixin;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,6 +37,9 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 	private Map<Identifier, EntityAttributeInstance> data_custom = new HashMap<Identifier, EntityAttributeInstance>();
 	
 	@Unique
+	private Map<Identifier, EntityAttributeInstance> data_tracked = new HashMap<Identifier, EntityAttributeInstance>();
+
+	@Unique
 	private LivingEntity data_livingEntity;
 	
 	@Final
@@ -44,6 +49,23 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 	@Shadow
 	private void updateTrackedStatus(EntityAttributeInstance instance) {}
 	
+	@Inject(method = "updateTrackedStatus", at = @At("HEAD"), cancellable = true)
+	private void data_updateTrackedStatus(EntityAttributeInstance instance, CallbackInfo ci) {
+		Identifier identifier = ((MutableAttributeInstance)instance).getId();
+
+		if(identifier != null) {
+			this.data_tracked.put(identifier, instance);
+		}
+		
+		ci.cancel();
+	}
+
+	@Inject(method = "getTracked", at = @At("Head"), cancellable = true)
+	private void data_getTracked(CallbackInfoReturnable<Set<EntityAttributeInstance>> cir) {
+		Set<EntityAttributeInstance> tracked = this.data_tracked.values().stream().collect(Collectors.toSet());
+		cir.setReturnValue(tracked);
+	}
+
 	@Redirect(method = "getAttributesToSend", at = @At(value = "INVOKE", target = "Ljava/util/Map;values()Ljava/util/Collection;"))
 	private Collection<?> data_getAttributesToSend(Map<?, ?> instances) {
 		return this.data_custom.values();
@@ -158,5 +180,10 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 		for(EntityAttributeInstance instance : this.data_custom.values()) {
 			((MutableAttributeInstance)instance).refresh();
 		}
+	}
+
+	@Override
+	public void clearTracked() {
+		this.data_tracked.clear();
 	}
 }

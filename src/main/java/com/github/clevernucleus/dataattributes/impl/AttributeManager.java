@@ -3,17 +3,10 @@ package com.github.clevernucleus.dataattributes.impl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
-import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
-import java.util.zip.Inflater;
 
 import org.slf4j.Logger;
 
@@ -24,21 +17,16 @@ import com.github.clevernucleus.dataattributes.json.AttributeOverrideJson;
 import com.github.clevernucleus.dataattributes.json.EntityTypesJson;
 import com.github.clevernucleus.dataattributes.json.FunctionsJson;
 import com.github.clevernucleus.dataattributes.json.PropertiesJson;
-import com.github.clevernucleus.dataattributes.mutable.MutableAttributeContainer;
-import com.github.clevernucleus.dataattributes.mutable.MutableDefaultAttributeContainer;
 import com.github.clevernucleus.dataattributes.mutable.MutableEntityAttribute;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
 
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.AttributeContainer;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.DefaultAttributeRegistry;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
@@ -46,8 +34,6 @@ import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.passive.AnimalEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.StringNbtReader;
-import net.minecraft.nbt.visitor.StringNbtWriter;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -61,19 +47,18 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	private static final Logger LOGGER = LogUtils.getLogger();
 	private static final String DIRECTORY = "attributes";
 	private static final Identifier ID = new Identifier(DataAttributesAPI.MODID, DIRECTORY);
-	private static final Map<Identifier, Pair<Class<? extends LivingEntity>, Integer>> ENTITY_TYPE_INSTANCES = new HashMap<>();
+	private static final Map<Identifier, Tuple<Integer>> ENTITY_TYPE_INSTANCES = new HashMap<>();
 
 	private Map<Identifier, EntityAttributeData> entityAttributeData = ImmutableMap.of();
 	private Map<Identifier, EntityTypeData> entityTypeData = ImmutableMap.of();
-	private Map<Integer, Pair<Class<? extends LivingEntity>, DefaultAttributeContainer>> implicitContainers = ImmutableMap.of();
-	private Map<EntityType<? extends LivingEntity>, DefaultAttributeContainer> explicitContainers = ImmutableMap.of();
-	private byte[] entityAttributeBytes, entityTypeBytes;
-	
-	private static record Pair<F, S>(F fruit, S stalk) {}
-	protected record Wrapper(Map<Identifier, EntityAttributeData> entityAttributeData, Map<Identifier, EntityTypeData> entityTypeData) {}
+	private AttributeContainerHandler handler = new AttributeContainerHandler();
+	private int updateFlag = 0;
+
+	protected static final record Tuple<T>(Class<? extends LivingEntity> livingEntity, T value) {}
+	protected static final record Wrapper(Map<Identifier, EntityAttributeData> entityAttributeData, Map<Identifier, EntityTypeData> entityTypeData) {}
 	
 	public AttributeManager() {}
-	
+
 	private static Map<Identifier, AttributeFunctionJson> formatFunctions(Map<String, AttributeFunctionJson> functionsIn) {
 		Map<Identifier, AttributeFunctionJson> functions = new HashMap<Identifier, AttributeFunctionJson>();
 		
@@ -260,124 +245,66 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		}
 	}
 	
-	private <T extends NbtIO> byte[] generateCurrentData(final Map<Identifier, T> data) {
-		StringNbtWriter writer = new StringNbtWriter();
-		NbtCompound tag = new NbtCompound();
-		
-		data.forEach((key, value) -> {
+	public void toNbt(NbtCompound tag) {
+		NbtCompound entityAttributeNbt = new NbtCompound();
+		NbtCompound entityTypeNbt = new NbtCompound();
+
+		this.entityAttributeData.forEach((key, val) -> {
 			NbtCompound entry = new NbtCompound();
-			value.writeToNbt(entry);
-			tag.put(key.toString(), entry);
+			val.writeToNbt(entry);
+			entityAttributeNbt.put(key.toString(), entry);
 		});
-		
-		String snbt = writer.apply(tag);
-		byte[] bytes;
-		
-		try {
-			bytes = snbt.getBytes("UTF-8");
-		} catch(UnsupportedEncodingException e) {
-			bytes = new byte[] {(byte)0};
-		}
-		
-		Deflater deflater = new Deflater();
-		deflater.setInput(bytes);
-		deflater.finish();
-		
-		byte[] compressed = new byte[Short.MAX_VALUE];
-		int size = deflater.deflate(compressed);
-		deflater.end();
-		
-		return Arrays.copyOf(compressed, size);
-	}
-	
 
-	private NbtCompound readFromData(byte[] bytesIn) {
-		Inflater inflater = new Inflater();
-		inflater.setInput(bytesIn);
-		
-		byte[] cache = new byte[Short.MAX_VALUE];
-		int size;
-		
-		try {
-			size = inflater.inflate(cache);
-		} catch (DataFormatException e) {
-			size = 1;
-		}
-		
-		inflater.end();
-		byte[] uncompressed = Arrays.copyOf(cache, size);
-		String snbt = new String(uncompressed);
-		NbtCompound nbt;
-		
-		try {
-			nbt = StringNbtReader.parse(snbt);
-		} catch (CommandSyntaxException e) {
-			nbt = new NbtCompound();
-		}
-		
-		return nbt;
-	}
-	
-	public void setEntityAttributeData(byte[] bytesIn) {
-		NbtCompound tag = this.readFromData(bytesIn);
-		ImmutableMap.Builder<Identifier, EntityAttributeData> builder = ImmutableMap.builder();
-		tag.getKeys().forEach(key -> {
-			NbtCompound entry = tag.getCompound(key);
-			EntityAttributeData entityAttributeData = new EntityAttributeData();
-			entityAttributeData.readFromNbt(entry);
-			builder.put(new Identifier(key), entityAttributeData);
+		this.entityTypeData.forEach((key, val) -> {
+			NbtCompound entry = new NbtCompound();
+			val.writeToNbt(entry);
+			entityTypeNbt.put(key.toString(), entry);
 		});
-		
-		this.entityAttributeData = builder.build();
-	}
-	
-	public void setEntityTypeData(byte[] bytesIn) {
-		NbtCompound tag = this.readFromData(bytesIn);
-		ImmutableMap.Builder<Identifier, EntityTypeData> builder = ImmutableMap.builder();
-		tag.getKeys().forEach(key -> {
-			NbtCompound entry = tag.getCompound(key);
-			EntityTypeData entityTypeData = new EntityTypeData();
-			entityTypeData.readFromNbt(entry);
-			builder.put(new Identifier(key), entityTypeData);
-		});
-		
-		this.entityTypeData = builder.build();
-	}
-	
-	public byte[] getEntityAttributeData() {
-		if(this.entityAttributeBytes == null) return new byte[] {(byte)0};
-		return this.entityAttributeBytes;
-	}
-	
-	public byte[] getEntityTypeData() {
-		if(this.entityTypeBytes == null) return new byte[] {(byte)0};
-		return this.entityTypeBytes;
-	}
-	
-	public AttributeContainer getContainer(final EntityType<? extends LivingEntity> entityType, final LivingEntity entity) {
-		DefaultAttributeContainer.Builder builder = DefaultAttributeContainer.builder();
-		((MutableDefaultAttributeContainer)DefaultAttributeRegistry.get(entityType)).copy(builder);
 
-		for(int i = 0; i < this.implicitContainers.size(); i++) {
-			Pair<Class<? extends LivingEntity>, DefaultAttributeContainer> entityTypeContainer = this.implicitContainers.get(i);
-			Class<? extends LivingEntity> type = entityTypeContainer.fruit();
-
-			if(type.isInstance(entity)) {
-				((MutableDefaultAttributeContainer)entityTypeContainer.stalk()).copy(builder);
-			}
+		tag.put("Attributes", entityAttributeNbt);
+		tag.put("EntityTypes", entityTypeNbt);
+		tag.putInt("UpdateFlag", this.updateFlag);
+	}
+	
+	public void fromNbt(NbtCompound tag) {
+		if(tag.contains("Attributes")) {
+			ImmutableMap.Builder<Identifier, EntityAttributeData> builder = ImmutableMap.builder();
+			NbtCompound nbtCompound = tag.getCompound("Attributes");
+			nbtCompound.getKeys().forEach(key -> {
+				NbtCompound entry = nbtCompound.getCompound(key);
+				EntityAttributeData entityAttributeData = new EntityAttributeData();
+				entityAttributeData.readFromNbt(entry);
+				builder.put(new Identifier(key), entityAttributeData);
+			});
+			this.entityAttributeData = builder.build();
 		}
 
-		if(this.explicitContainers.containsKey(entityType)) {
-			((MutableDefaultAttributeContainer)this.explicitContainers.get(entityType)).copy(builder);
+		if(tag.contains("EntityTypes")) {
+			ImmutableMap.Builder<Identifier, EntityTypeData> builder = ImmutableMap.builder();
+			NbtCompound nbtCompound = tag.getCompound("EntityTypes");
+			nbtCompound.getKeys().forEach(key -> {
+				NbtCompound entry = nbtCompound.getCompound(key);
+				EntityTypeData entityTypeData = new EntityTypeData();
+				entityTypeData.readFromNbt(entry);
+				builder.put(new Identifier(key), entityTypeData);
+			});
+			this.entityTypeData = builder.build();
 		}
-
-		AttributeContainer attributeContainer = new AttributeContainer(builder.build());
-		((MutableAttributeContainer)attributeContainer).setLivingEntity(entity);
-
-		return attributeContainer;
+		this.updateFlag = tag.getInt("UpdateFlag");
 	}
 
-	@SuppressWarnings("unchecked")
+	public void nextUpdateFlag() {
+		this.updateFlag++;
+	}
+
+	public int getUpdateFlag() {
+		return this.updateFlag;
+	}
+
+	public AttributeContainer getContainer(final EntityType<? extends LivingEntity> entityType, final LivingEntity livingEntity) {
+		return this.handler.getContainer(entityType, livingEntity);
+	}
+
 	public void apply() {
 		MutableRegistryImpl.unregister(Registry.ATTRIBUTE);
 		
@@ -403,41 +330,7 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			entityAttributeData.copy(entityAttribute);
 		}
 		
-		Collection<Identifier> entityTypes = Registry.ENTITY_TYPE.getIds().stream().filter(id -> DefaultAttributeRegistry.hasDefinitionFor(Registry.ENTITY_TYPE.get(id))).collect(Collectors.toSet());
-		ImmutableMap.Builder<EntityType<? extends LivingEntity>, DefaultAttributeContainer> explicitContainers = ImmutableMap.builder();
-		ImmutableMap.Builder<Integer, Pair<Class<? extends LivingEntity>, DefaultAttributeContainer>> implicitContainers = ImmutableMap.builder();
-		Map<Integer, Pair<Class<? extends LivingEntity>, Identifier>> orderedEntityTypeHierarchy = new HashMap<>();
-
-		for(Identifier identifier : this.entityTypeData.keySet()) {
-			if(ENTITY_TYPE_INSTANCES.containsKey(identifier)) {
-				Pair<Class<? extends LivingEntity>, Integer> value = ENTITY_TYPE_INSTANCES.get(identifier);
-				orderedEntityTypeHierarchy.put(value.stalk(), new Pair<Class<? extends LivingEntity>, Identifier>(value.fruit(), identifier));
-			}
-			if(!entityTypes.contains(identifier)) continue;
-			
-			EntityType<? extends LivingEntity> entityType = (EntityType<? extends LivingEntity>)Registry.ENTITY_TYPE.get(identifier);
-			DefaultAttributeContainer.Builder builder = DefaultAttributeContainer.builder();
-			EntityTypeData entityTypeData = this.entityTypeData.get(identifier);
-			entityTypeData.build(builder, DefaultAttributeRegistry.get(entityType));
-			explicitContainers.put(entityType, builder.build());
-		}
-		
-		final int size = orderedEntityTypeHierarchy.size();
-		final int max = orderedEntityTypeHierarchy.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
-
-		for(Map.Entry<Integer, Pair<Class<? extends LivingEntity>, Identifier>> entry : orderedEntityTypeHierarchy.entrySet()) {
-			Pair<Class<? extends LivingEntity>, Identifier> entityTypeHierarchy = entry.getValue();
-			Identifier identifier = entityTypeHierarchy.stalk();
-			final int hierarchy = entry.getKey();
-			final int index = Math.round((float)size * (float)hierarchy / (float)max) - 1;
-			DefaultAttributeContainer.Builder builder = DefaultAttributeContainer.builder();
-			EntityTypeData entityTypeData = this.entityTypeData.get(identifier);
-			entityTypeData.build(builder, null);
-			implicitContainers.put(index, new Pair<Class<? extends LivingEntity>, DefaultAttributeContainer>(entityTypeHierarchy.fruit(), builder.build()));
-		}
-
-		this.implicitContainers = implicitContainers.build();
-		this.explicitContainers = explicitContainers.build();
+		this.handler.buildContainers(this.entityTypeData, ENTITY_TYPE_INSTANCES);
 		
 		AttributesReloadedEvent.EVENT.invoker().onCompletedReload();
 	}
@@ -463,12 +356,10 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 			ImmutableMap.Builder<Identifier, EntityAttributeData> entityAttributeData = ImmutableMap.builder();
 			data.entityAttributeData.forEach(entityAttributeData::put);
 			this.entityAttributeData = entityAttributeData.build();
-			this.entityAttributeBytes = this.generateCurrentData(this.entityAttributeData);
 			
 			ImmutableMap.Builder<Identifier, EntityTypeData> entityTypeData = ImmutableMap.builder();
 			data.entityTypeData.forEach(entityTypeData::put);
 			this.entityTypeData = entityTypeData.build();
-			this.entityTypeBytes = this.generateCurrentData(this.entityTypeData);
 			
 			this.apply();
 		}, executor);
@@ -480,11 +371,11 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	}
 
 	static {
-		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_LIVING_ENTITY), new Pair<Class<? extends LivingEntity>, Integer>(LivingEntity.class, 0));
-		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_MOB_ENTITY), new Pair<Class<? extends LivingEntity>, Integer>(MobEntity.class, 1));
-		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_PATH_AWARE_ENTITY), new Pair<Class<? extends LivingEntity>, Integer>(PathAwareEntity.class, 2));
-		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_HOSTILE_ENTITY), new Pair<Class<? extends LivingEntity>, Integer>(HostileEntity.class, 3));
-		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_PASSIVE_ENTITY), new Pair<Class<? extends LivingEntity>, Integer>(PassiveEntity.class, 4));
-		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_ANIMAL_ENTITY), new Pair<Class<? extends LivingEntity>, Integer>(AnimalEntity.class, 5));
+		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_LIVING_ENTITY), new Tuple<Integer>(LivingEntity.class, 0));
+		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_MOB_ENTITY), new Tuple<Integer>(MobEntity.class, 1));
+		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_PATH_AWARE_ENTITY), new Tuple<Integer>(PathAwareEntity.class, 2));
+		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_HOSTILE_ENTITY), new Tuple<Integer>(HostileEntity.class, 3));
+		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_PASSIVE_ENTITY), new Tuple<Integer>(PassiveEntity.class, 4));
+		ENTITY_TYPE_INSTANCES.put(new Identifier(DataAttributesAPI.MODID, DataAttributesAPI.ENTITY_INSTANCE_ANIMAL_ENTITY), new Tuple<Integer>(AnimalEntity.class, 5));
 	}
 }
