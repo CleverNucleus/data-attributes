@@ -26,7 +26,7 @@
         "dataattributes.mixins.json"
     ],
     "depends": {
-        "fabricloader": ">=0.14.18",
+        "fabricloader": ">=0.14.10",
         "fabric-api": ">=0.76.0",
         "minecraft": "1.19.2",
         "java": ">=17"
