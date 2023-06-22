@@ -49,7 +49,7 @@ public class DataAttributes implements ModInitializer {
 	
 	private static void healthModified(final EntityAttribute attribute, final @Nullable LivingEntity livingEntity, final EntityAttributeModifier modifier, final double prevValue, final boolean isWasAdded) {
 		if(livingEntity == null) return;
-		if(livingEntity.world.isClient) return;
+		if(livingEntity.getWorld().isClient) return;
 		if(attribute != EntityAttributes.GENERIC_MAX_HEALTH) return;
 		
 		float c0 = livingEntity.getHealth();

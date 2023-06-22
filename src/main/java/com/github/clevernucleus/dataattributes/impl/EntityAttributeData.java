@@ -10,8 +10,9 @@ import com.github.clevernucleus.dataattributes.mutable.MutableEntityAttribute;
 
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registry;
 
 public final class EntityAttributeData implements NbtIO {
 	private AttributeOverrideJson attribute;
@@ -39,7 +40,7 @@ public final class EntityAttributeData implements NbtIO {
 		mutableEntityAttribute.properties(this.properties);
 		
 		for(Identifier identifier : this.functions.keySet()) {
-			EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(identifier);
+			EntityAttribute entityAttribute = Registries.ATTRIBUTE.get(identifier);
 			
 			if(entityAttribute == null) continue;
 			

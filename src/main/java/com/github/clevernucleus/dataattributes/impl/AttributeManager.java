@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+import net.minecraft.registry.*;
 import org.slf4j.Logger;
 
 import com.github.clevernucleus.dataattributes.api.DataAttributesAPI;
@@ -39,7 +40,6 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.util.registry.Registry;
 
 public final class AttributeManager implements SimpleResourceReloadListener<AttributeManager.Wrapper> {
 	private static final Gson GSON = (new GsonBuilder()).excludeFieldsWithoutExposeAnnotation().create();
@@ -72,13 +72,12 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	}
 	
 	private static EntityAttribute getOrCreate(final Identifier identifier, EntityAttribute attributeIn) {
-		EntityAttribute attribute = Registry.ATTRIBUTE.get(identifier);
-		
-		if(attribute == null) {
-			attribute = MutableRegistryImpl.register(Registry.ATTRIBUTE, identifier, attributeIn);
+		if(!Registries.ATTRIBUTE.containsId(identifier)){
+			Registries.ATTRIBUTE.createEntry(attributeIn);
 		}
+		//attribute = MutableRegistryImpl.register(Registries.ATTRIBUTE, identifier, attributeIn);
 		
-		return attribute;
+		return Registries.ATTRIBUTE.get(identifier);
 	}
 	
 	private static void loadOverrides(ResourceManager manager, Map<Identifier, EntityAttributeData> entityAttributeData) {
@@ -141,8 +140,8 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 					
 					LOGGER.error("Couldn't load data file {} from {} as it's null or empty", (Object)identifier, (Object)resource);
 				} finally {
-					if(reader == null) continue;
-					((Reader)reader).close();
+					if(reader != null)
+						((Reader)reader).close();
 				}
 			} catch(IOException | IllegalArgumentException exception) {
 				LOGGER.error("Couldn't parse data file {} from {}", identifier, resource, exception);
@@ -306,10 +305,8 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 	}
 
 	public void apply() {
-		MutableRegistryImpl.unregister(Registry.ATTRIBUTE);
-		
-		for(Identifier identifier : Registry.ATTRIBUTE.getIds()) {
-			EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(identifier);
+		for(Identifier identifier : Registries.ATTRIBUTE.getIds()) {
+			EntityAttribute entityAttribute = Registries.ATTRIBUTE.get(identifier);
 			
 			if(entityAttribute == null) continue;
 			
@@ -322,7 +319,7 @@ public final class AttributeManager implements SimpleResourceReloadListener<Attr
 		}
 		
 		for(Identifier identifier : this.entityAttributeData.keySet()) {
-			EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(identifier);
+			EntityAttribute entityAttribute = Registries.ATTRIBUTE.get(identifier);
 			
 			if(entityAttribute == null) continue;
 			

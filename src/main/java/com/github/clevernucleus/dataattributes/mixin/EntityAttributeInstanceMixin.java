@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import net.minecraft.registry.Registries;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -35,7 +36,7 @@ import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registry;
 
 @Mixin(EntityAttributeInstance.class)
 abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance, IEntityAttributeInstance {
@@ -71,12 +72,12 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 	
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void data_init(EntityAttribute type, Consumer<EntityAttributeInstance> updateCallback, CallbackInfo ci) {
-		this.data_identifier = Registry.ATTRIBUTE.getId(type);
+		this.data_identifier = Registries.ATTRIBUTE.getId(type);
 	}
 	
 	@Inject(method = "getAttribute", at = @At("HEAD"), cancellable = true)
 	private void data_getAttribute(CallbackInfoReturnable<EntityAttribute> ci) {
-		EntityAttribute attribute = Registry.ATTRIBUTE.get(this.data_identifier);
+		EntityAttribute attribute = Registries.ATTRIBUTE.get(this.data_identifier);
 		
 		if(attribute != null) {
 			ci.setReturnValue(attribute);
@@ -196,9 +197,9 @@ abstract class EntityAttributeInstanceMixin implements MutableAttributeInstance,
 		ci.cancel();
 	}
 	
-	@Redirect(method = "toNbt", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/registry/Registry;getId(Ljava/lang/Object;)Lnet/minecraft/util/Identifier;"))
+	@Redirect(method = "toNbt", at = @At(value = "INVOKE", target = "Lnet/minecraft/registry/Registry;getId(Ljava/lang/Object;)Lnet/minecraft/util/Identifier;"))
 	private Identifier data_toNbt(Registry<?> registry, Object type) {
-		if(this.data_identifier == null) return Registry.ATTRIBUTE.getId((EntityAttribute)type);
+		if(this.data_identifier == null) return Registries.ATTRIBUTE.getId((EntityAttribute)type);
 		return this.data_identifier;
 	}
 	

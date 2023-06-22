@@ -6,8 +6,9 @@ import java.util.function.Supplier;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.AttributeContainer;
 import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registry;
 
 /**
  * 
@@ -59,7 +60,7 @@ public final class DataAttributesAPI {
 	 * so static initialisation would not work. Using this you can safely access an attribute through a static reference.
 	 */
 	public static Supplier<EntityAttribute> getAttribute(final Identifier attributeKey) {
-		return () -> Registry.ATTRIBUTE.get(attributeKey);
+		return () -> Registries.ATTRIBUTE.get(attributeKey);
 	}
 	
 	/**

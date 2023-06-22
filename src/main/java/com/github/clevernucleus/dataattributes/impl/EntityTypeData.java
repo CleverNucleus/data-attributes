@@ -8,8 +8,9 @@ import com.github.clevernucleus.dataattributes.mutable.MutableDefaultAttributeCo
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registry;
 
 public final class EntityTypeData implements NbtIO {
 	public final Map<Identifier, Double> data;
@@ -29,7 +30,7 @@ public final class EntityTypeData implements NbtIO {
 		}
 		
 		for(Identifier key : this.data.keySet()) {
-			EntityAttribute entityAttribute = Registry.ATTRIBUTE.get(key);
+			EntityAttribute entityAttribute = Registries.ATTRIBUTE.get(key);
 			
 			if(entityAttribute == null) continue;
 			

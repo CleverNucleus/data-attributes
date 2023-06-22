@@ -4,7 +4,7 @@ import com.github.clevernucleus.dataattributes.mutable.MutableSimpleRegistry;
 
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registry;
 
 public final class MutableRegistryImpl {
 	

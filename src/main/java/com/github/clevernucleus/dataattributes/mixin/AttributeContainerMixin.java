@@ -1,11 +1,9 @@
 package com.github.clevernucleus.dataattributes.mixin;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import net.minecraft.registry.Registries;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -28,7 +26,7 @@ import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registry;
 
 @Mixin(AttributeContainer.class)
 abstract class AttributeContainerMixin implements MutableAttributeContainer {
@@ -60,9 +58,9 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 		ci.cancel();
 	}
 
-	@Inject(method = "getTracked", at = @At("Head"), cancellable = true)
+	@Inject(method = "getTracked", at = @At("HEAD"), cancellable = true)
 	private void data_getTracked(CallbackInfoReturnable<Set<EntityAttributeInstance>> cir) {
-		Set<EntityAttributeInstance> tracked = this.data_tracked.values().stream().collect(Collectors.toSet());
+		Set<EntityAttributeInstance> tracked = new HashSet<>(this.data_tracked.values());
 		cir.setReturnValue(tracked);
 	}
 
@@ -71,9 +69,9 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 		return this.data_custom.values();
 	}
 	
-	@Inject(method = "getCustomInstance", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "getCustomInstance*", at = @At("HEAD"), cancellable = true)
 	private void data_getCustomInstance(EntityAttribute attribute2, CallbackInfoReturnable<EntityAttributeInstance> ci) {
-		Identifier identifier = Registry.ATTRIBUTE.getId(attribute2);
+		Identifier identifier = Registries.ATTRIBUTE.getId(attribute2);
 		
 		if(identifier != null) {
 			EntityAttributeInstance entityAttributeInstance = this.data_custom.computeIfAbsent(identifier, id -> this.fallback.createOverride(this::updateTrackedStatus, attribute2));
@@ -93,40 +91,40 @@ abstract class AttributeContainerMixin implements MutableAttributeContainer {
 		}
 	}
 	
-	@Redirect(method = "hasAttribute", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
+	@Redirect(method = "hasAttribute*", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
 	private Object data_hasAttribute(Map<?, ?> instances, Object attribute) {
-		Identifier identifier = Registry.ATTRIBUTE.getId((EntityAttribute)attribute);
+		Identifier identifier = Registries.ATTRIBUTE.getId((EntityAttribute)attribute);
 		return this.data_custom.get(identifier);
 	}
 	
-	@Redirect(method = "hasModifierForAttribute", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
+	@Redirect(method = "hasModifierForAttribute*", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
 	private Object data_hasModifierForAttribute(Map<?, ?> instances, Object attribute) {
-		Identifier identifier = Registry.ATTRIBUTE.getId((EntityAttribute)attribute);
+		Identifier identifier = Registries.ATTRIBUTE.getId((EntityAttribute)attribute);
 		return this.data_custom.get(identifier);
 	}
 	
 	@Redirect(method = "getValue", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
 	private Object data_getValue(Map<?, ?> instances, Object attribute) {
-		Identifier identifier = Registry.ATTRIBUTE.getId((EntityAttribute)attribute);
+		Identifier identifier = Registries.ATTRIBUTE.getId((EntityAttribute)attribute);
 		return this.data_custom.get(identifier);
 	}
 	
 	@Redirect(method = "getBaseValue", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
 	private Object data_getBaseValue(Map<?, ?> instances, Object attribute) {
-		Identifier identifier = Registry.ATTRIBUTE.getId((EntityAttribute)attribute);
+		Identifier identifier = Registries.ATTRIBUTE.getId((EntityAttribute)attribute);
 		return this.data_custom.get(identifier);
 	}
 	
-	@Redirect(method = "getModifierValue", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
+	@Redirect(method = "getModifierValue*", at = @At(value = "INVOKE", target = "Ljava/util/Map;get(Ljava/lang/Object;)Ljava/lang/Object;"))
 	private Object data_getModifierValue(Map<?, ?> instances, Object attribute) {
-		Identifier identifier = Registry.ATTRIBUTE.getId((EntityAttribute)attribute);
+		Identifier identifier = Registries.ATTRIBUTE.getId((EntityAttribute)attribute);
 		return this.data_custom.get(identifier);
 	}
 	
 	@Inject(method = "removeModifiers", at = @At("HEAD"), cancellable = true)
 	private void data_removeModifiers(Multimap<EntityAttribute, EntityAttributeModifier> attributeModifiers, CallbackInfo ci) {
 		attributeModifiers.asMap().forEach((attribute, collection) -> {
-			Identifier identifier = Registry.ATTRIBUTE.getId(attribute);
+			Identifier identifier = Registries.ATTRIBUTE.getId(attribute);
             EntityAttributeInstance entityAttributeInstance = this.data_custom.get(identifier);
             
             if(entityAttributeInstance != null) {
